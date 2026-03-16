@@ -36,11 +36,28 @@ public class GameManager : MonoBehaviour
     private IEnumerator CheckMatchRoutine()
     {
         _isProcessing = true;
-
-        // Burada kartların ID'lerini karşılaştıracağız...
-        // [Gelecek adım: Eşleşme mantığı]
-
-        yield return new WaitForSeconds(1f);
+    
+        // Kısa bir bekleme (oyuncunun ikinci kartı görmesi için)
+        yield return new WaitForSeconds(0.5f);
+    
+        if (_firstSelected.GetID() == _secondSelected.GetID())
+        {
+            // ✅ EŞLEŞME OLDU
+            _firstSelected.SetMatched();
+            _secondSelected.SetMatched();
+            // İleride buraya kartları yok etme veya efekt ekleme gelecek
+        }
+        else
+        {
+            // ❌ EŞLEŞME YOK
+            yield return new WaitForSeconds(0.5f);
+            _firstSelected.HideCard();
+            _secondSelected.HideCard();
+        }
+    
+        // Seçimleri temizle ve yeni hamleye izin ver
+        _firstSelected = null;
+        _secondSelected = null;
         _isProcessing = false;
     }
 }
