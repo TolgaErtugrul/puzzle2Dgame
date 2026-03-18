@@ -74,4 +74,15 @@ public class GameManager : MonoBehaviour
             cardsToShuffle[randomIndex] = temp;
         }
     }
+
+    public void SetupGrid()
+    {
+        ShuffleCards(allCards);
+    
+        // Karıştırılmış listeye göre hiyerarşideki sıralamayı güncelle
+        for (int i = 0; i < allCards.Count; i++)
+        {
+            allCards[i].transform.SetSiblingIndex(i);
+        }
+    }
 }
