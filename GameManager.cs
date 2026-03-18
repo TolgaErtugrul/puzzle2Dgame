@@ -60,4 +60,18 @@ public class GameManager : MonoBehaviour
         _secondSelected = null;
         _isProcessing = false;
     }
+
+    private void ShuffleCards(List<Card> cardsToShuffle)
+    {
+        for (int i = cardsToShuffle.Count - 1; i > 0; i--)
+        {
+            // 0 ile i arasında rastgele bir index seç
+            int randomIndex = Random.Range(0, i + 1);
+    
+            // Elemanların yerini değiştir (Swap)
+            Card temp = cardsToShuffle[i];
+            cardsToShuffle[i] = cardsToShuffle[randomIndex];
+            cardsToShuffle[randomIndex] = temp;
+        }
+    }
 }
