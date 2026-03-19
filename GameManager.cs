@@ -85,4 +85,29 @@ public class GameManager : MonoBehaviour
             allCards[i].transform.SetSiblingIndex(i);
         }
     }
+
+    public IEnumerator StartGameSequence()
+    {
+        _isProcessing = true; // Oyuncunun kartlara dokunmasını engelle
+    
+        // 1. Kartları karıştır ve diz
+        SetupGrid();
+    
+        // 2. Tüm kartları aç
+        foreach (Card card in allCards)
+        {
+            card.ShowCard();
+        }
+    
+        // 3. 2 saniye bekle
+        yield return new WaitForSeconds(2f);
+    
+        // 4. Tüm kartları kapat
+        foreach (Card card in allCards)
+        {
+            card.HideCard();
+        }
+    
+        _isProcessing = false; // Artık oyuncu dokunabilir
+    }
 }
