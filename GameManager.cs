@@ -12,10 +12,30 @@ public class GameManager : MonoBehaviour
     private Card _firstSelected;
     private Card _secondSelected;
     private bool _isProcessing = false; // İki kart kontrol edilirken dokunmayı engellemek için
+    private float _currentTime;
+    private bool _isTimerRunning = false;
 
     void Awake()
     {
         Instance = this;
+    }
+    
+    void Update()
+    {
+        if (_isTimerRunning)
+        {
+            if (_currentTime > 0)
+            {
+                _currentTime -= Time.deltaTime;
+                // Burada UI'daki süreyi güncelleyeceğiz
+            }
+            else
+            {
+                _currentTime = 0;
+                _isTimerRunning = false;
+                GameOver(); // Süre bitti!
+            }
+        }
     }
 
     public void OnCardFlipped(Card flippedCard)
