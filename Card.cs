@@ -63,4 +63,35 @@ public class Card : MonoBehaviour
             yield return null;
         }
     }
+
+    // GameManager'ın ID'yi okuyabilmesi için gerekli
+    public int GetID()
+    {
+        return _cardID;
+    }
+    
+    // Kart eşleştiğinde çağrılacak fonksiyon
+    public void SetMatched()
+    {
+        _isMatched = true;
+        _isFlipped = true; // Kartın açık kalmasını sağlar
+        
+        // Eşleşen kartları sahneden silmek yerine görünmez yapabiliriz
+        // Ya da bir animasyon oynatıp sonra kapatabiliriz
+        StartCoroutine(MatchAnimationRoutine());
+    }
+    
+    private IEnumerator MatchAnimationRoutine()
+    {
+        yield return new WaitForSeconds(0.3f);
+        // Kartı yavaşça küçülterek yok etme efekti
+        float elapsed = 0f;
+        while (elapsed < 0.3f)
+        {
+            elapsed += Time.deltaTime;
+            transform.localScale = Vector3.Lerp(Vector3.one, Vector3.zero, elapsed / 0.3f);
+            yield return null;
+        }
+        gameObject.SetActive(false); // Kartı tamamen gizle
+    }
 }
