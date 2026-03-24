@@ -8,6 +8,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Game Settings")]
     public List<Card> allCards = new List<Card>();
+
+    [Header("UI & Logic")]
+    public int totalPairs;       // Bu seviyedeki toplam çift sayısı
+    private int _matchedPairs;    // Şu ana kadar bulunan çift sayısı
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -129,5 +133,51 @@ public class GameManager : MonoBehaviour
         }
     
         _isProcessing = false; // Artık oyuncu dokunabilir
+    }
+
+    private IEnumerator CheckMatchRoutine()
+{
+    _isProcessing = true;
+    yield return new WaitForSeconds(0.5f);
+
+    if (_firstSelected.GetID() == _secondSelected.GetID())
+    {
+        // ✅ EŞLEŞME OLDU
+        _firstSelected.SetMatched();
+        _secondSelected.SetMatched();
+        
+        _matchedPairs++; // Bir çift daha bulundu!
+
+        // Tüm çiftler bulundu mu?
+        if (_matchedPairs >= totalPairs)
+        {
+            WinGame();
+        }
+    }
+    else
+    {
+        // ❌ EŞLEŞME YOK
+        yield return new WaitForSeconds(0.5f);
+        _firstSelected.HideCard();
+        _secondSelected.HideCard();
+    }
+
+    _firstSelected = null;
+    _secondSelected = null;
+    _isProcessing = false;
+    }
+    
+    public void WinGame()
+    {
+        _isTimerRunning = false;
+        Debug.Log("Tebrikler! Tüm kartları eşleştirdin.");
+        // Burada "Sonraki Bölüm" butonunu açabilirsin
+    }
+    
+    public void GameOver()
+    {
+        _isTimerRunning = false;
+        Debug.Log("Süre doldu! Kaybettin.");
+        // Burada "Tekrar Dene" menüsünü açabilirsin
     }
 }
