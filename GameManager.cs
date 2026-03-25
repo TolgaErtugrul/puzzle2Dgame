@@ -19,6 +19,8 @@ public class GameManager : MonoBehaviour
     private float _currentTime;
     private bool _isTimerRunning = false;
 
+    public CanvasGroup winPanelGroup;
+
     void Awake()
     {
         Instance = this;
@@ -170,8 +172,7 @@ public class GameManager : MonoBehaviour
     public void WinGame()
     {
         _isTimerRunning = false;
-        Debug.Log("Tebrikler! Tüm kartları eşleştirdin.");
-        // Burada "Sonraki Bölüm" butonunu açabilirsin
+        StartCoroutine(FadeInPanel(winPanelGroup));
     }
     
     public void GameOver()
@@ -179,5 +180,18 @@ public class GameManager : MonoBehaviour
         _isTimerRunning = false;
         Debug.Log("Süre doldu! Kaybettin.");
         // Burada "Tekrar Dene" menüsünü açabilirsin
+    }
+
+    private IEnumerator FadeInPanel(CanvasGroup cg)
+    {
+        float duration = 0.5f; // yarım saniyede açılsın
+        float elapsed = 0f;
+        
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(0, 1, elapsed / duration);
+            yield return null;
+        }
     }
 }
