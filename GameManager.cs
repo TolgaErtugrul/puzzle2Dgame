@@ -1,60 +1,53 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro; 
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance; // Diğer kodlardan kolayca erişmek için
+    public static GameManager Instance;
 
+    [Header("UI & Panels")]
+    public CanvasGroup winPanelGroup;
+    
     [Header("Game Settings")]
     public List<Card> allCards = new List<Card>();
+    public int totalPairs;
 
-    [Header("UI & Logic")]
-    public int totalPairs;       // Bu seviyedeki toplam çift sayısı
-    private int _matchedPairs;    // Şu ana kadar bulunan çift sayısı
+    [Header("Level Generation")]
+    public LevelData currentLevel; // Oluşturduğun Level_1 dosyasını buraya sürükle
+    public GameObject cardPrefab;  // Prefab klasöründeki Card objesini buraya sürükle
+    public Transform cardGridParent; // Hierarchy'deki CardGrid objesini buraya sürükle
+    public List<Sprite> cardIcons; // Kartların üzerine gelecek resimler
     
     private Card _firstSelected;
     private Card _secondSelected;
-    private bool _isProcessing = false; // İki kart kontrol edilirken dokunmayı engellemek için
-    private float _currentTime;
+    private bool _isProcessing = false;
+    private int _matchedPairs = 0;
     private bool _isTimerRunning = false;
-
-    public CanvasGroup winPanelGroup;
 
     void Awake()
     {
         Instance = this;
     }
-    
-    void Update()
-    {
-        if (_isTimerRunning)
-        {
-            if (_currentTime > 0)
-            {
-                _currentTime -= Time.deltaTime;
-                // Burada UI'daki süreyi güncelleyeceğiz
-            }
-            else
-            {
-                _currentTime = 0;
-                _isTimerRunning = false;
-                GameOver(); // Süre bitti!
-            }
-        }
-    }
 
+    // Kart tıklandığında Card.cs tarafından çağrılır
     public void OnCardFlipped(Card flippedCard)
     {
         if (_isProcessing) return;
 
+        // Aynı karta iki kez tıklanmasını engelle
+        if (flippedCard == _firstSelected) return;
+
         if (_firstSelected == null)
         {
             _firstSelected = flippedCard;
+            _firstSelected.ShowCard();
         }
         else
         {
             _secondSelected = flippedCard;
+            _secondSelected.ShowCard();
             StartCoroutine(CheckMatchRoutine());
         }
     }
@@ -62,16 +55,21 @@ public class GameManager : MonoBehaviour
     private IEnumerator CheckMatchRoutine()
     {
         _isProcessing = true;
-    
-        // Kısa bir bekleme (oyuncunun ikinci kartı görmesi için)
-        yield return new WaitForSeconds(0.5f);
-    
+
+        // Kartların dönme animasyonu için bekle
+        yield return new WaitForSeconds(0.6f);
+
         if (_firstSelected.GetID() == _secondSelected.GetID())
         {
             // ✅ EŞLEŞME OLDU
             _firstSelected.SetMatched();
             _secondSelected.SetMatched();
-            // İleride buraya kartları yok etme veya efekt ekleme gelecek
+            _matchedPairs++;
+
+            if (_matchedPairs >= totalPairs)
+            {
+                WinGame();
+            }
         }
         else
         {
@@ -80,111 +78,28 @@ public class GameManager : MonoBehaviour
             _firstSelected.HideCard();
             _secondSelected.HideCard();
         }
-    
-        // Seçimleri temizle ve yeni hamleye izin ver
+
         _firstSelected = null;
         _secondSelected = null;
         _isProcessing = false;
     }
 
-    private void ShuffleCards(List<Card> cardsToShuffle)
-    {
-        for (int i = cardsToShuffle.Count - 1; i > 0; i--)
-        {
-            // 0 ile i arasında rastgele bir index seç
-            int randomIndex = Random.Range(0, i + 1);
-    
-            // Elemanların yerini değiştir (Swap)
-            Card temp = cardsToShuffle[i];
-            cardsToShuffle[i] = cardsToShuffle[randomIndex];
-            cardsToShuffle[randomIndex] = temp;
-        }
-    }
-
-    public void SetupGrid()
-    {
-        ShuffleCards(allCards);
-    
-        // Karıştırılmış listeye göre hiyerarşideki sıralamayı güncelle
-        for (int i = 0; i < allCards.Count; i++)
-        {
-            allCards[i].transform.SetSiblingIndex(i);
-        }
-    }
-
-    public IEnumerator StartGameSequence()
-    {
-        _isProcessing = true; // Oyuncunun kartlara dokunmasını engelle
-    
-        // 1. Kartları karıştır ve diz
-        SetupGrid();
-    
-        // 2. Tüm kartları aç
-        foreach (Card card in allCards)
-        {
-            card.ShowCard();
-        }
-    
-        // 3. 2 saniye bekle
-        yield return new WaitForSeconds(2f);
-    
-        // 4. Tüm kartları kapat
-        foreach (Card card in allCards)
-        {
-            card.HideCard();
-        }
-    
-        _isProcessing = false; // Artık oyuncu dokunabilir
-    }
-
-    private IEnumerator CheckMatchRoutine()
-{
-    _isProcessing = true;
-    yield return new WaitForSeconds(0.5f);
-
-    if (_firstSelected.GetID() == _secondSelected.GetID())
-    {
-        // ✅ EŞLEŞME OLDU
-        _firstSelected.SetMatched();
-        _secondSelected.SetMatched();
-        
-        _matchedPairs++; // Bir çift daha bulundu!
-
-        // Tüm çiftler bulundu mu?
-        if (_matchedPairs >= totalPairs)
-        {
-            WinGame();
-        }
-    }
-    else
-    {
-        // ❌ EŞLEŞME YOK
-        yield return new WaitForSeconds(0.5f);
-        _firstSelected.HideCard();
-        _secondSelected.HideCard();
-    }
-
-    _firstSelected = null;
-    _secondSelected = null;
-    _isProcessing = false;
-    }
-    
     public void WinGame()
     {
         _isTimerRunning = false;
-        StartCoroutine(FadeInPanel(winPanelGroup));
-    }
-    
-    public void GameOver()
-    {
-        _isTimerRunning = false;
-        Debug.Log("Süre doldu! Kaybettin.");
-        // Burada "Tekrar Dene" menüsünü açabilirsin
+        Debug.Log("Oyun Kazandı!");
+        if (winPanelGroup != null)
+        {
+            StartCoroutine(FadeInPanel(winPanelGroup));
+        }
     }
 
     private IEnumerator FadeInPanel(CanvasGroup cg)
     {
-        float duration = 0.5f; // yarım saniyede açılsın
+        cg.gameObject.SetActive(true);
+        cg.interactable = true;
+        cg.blocksRaycasts = true;
+        float duration = 0.5f;
         float elapsed = 0f;
         
         while (elapsed < duration)
@@ -192,6 +107,43 @@ public class GameManager : MonoBehaviour
             elapsed += Time.deltaTime;
             cg.alpha = Mathf.Lerp(0, 1, elapsed / duration);
             yield return null;
+        }
+    }
+
+    public void GenerateLevel()
+    {
+        // Önce griddeki eski kartları temizle (varsa)
+        foreach (Transform child in cardGridParent) { Destroy(child.gameObject); }
+        allCards.Clear();
+    
+        int totalCards = currentLevel.rowCount * currentLevel.columnCount;
+        totalPairs = totalCards / 2;
+    
+        List<int> idList = new List<int>();
+        for (int i = 0; i < totalPairs; i++)
+        {
+            idList.Add(i); // Çiftin birincisi
+            idList.Add(i); // Çiftin ikincisi
+        }
+        
+        // ID listesini karıştır
+        for (int i = 0; i < idList.Count; i++)
+        {
+            int temp = idList[i];
+            int randomIndex = Random.Range(i, idList.Count);
+            idList[i] = idList[randomIndex];
+            idList[randomIndex] = temp;
+        }
+    
+        // Kartları oluştur
+        for (int i = 0; i < totalCards; i++)
+        {
+            GameObject newCard = Instantiate(cardPrefab, cardGridParent);
+            Card cardScript = newCard.GetComponent<Card>();
+            
+            int cardID = idList[i];
+            cardScript.SetupCard(cardID, cardIcons[cardID]);
+            allCards.Add(cardScript);
         }
     }
 }
