@@ -112,6 +112,15 @@ public class GameManager : MonoBehaviour
 
     public void GenerateLevel()
     {
+        if (currentLevel == null) return; // Hata almamak için kontrol
+        
+        // Eski kartları temizle
+        foreach (Transform child in cardGridParent) { Destroy(child.gameObject); }
+        allCards.Clear();
+    
+        int totalCards = currentLevel.rowCount * currentLevel.columnCount;
+        totalPairs = totalCards / 2;
+    
         // Önce griddeki eski kartları temizle (varsa)
         foreach (Transform child in cardGridParent) { Destroy(child.gameObject); }
         allCards.Clear();
