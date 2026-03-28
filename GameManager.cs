@@ -158,4 +158,24 @@ public class GameManager : MonoBehaviour
         // Kartları oluşturduktan sonra:
         StartCoroutine(StartGameSequence());
     }
+
+    public IEnumerator StartGameSequence()
+    {
+        _isProcessing = true; 
+        yield return new WaitForSeconds(1f); // Kartların oluşması için kısa bir bekleme
+    
+        foreach (Card card in allCards)
+        {
+            card.ShowCard();
+        }
+    
+        yield return new WaitForSeconds(2f); // 2 saniye oyuncu ezberlesin
+    
+        foreach (Card card in allCards)
+        {
+            card.HideCard();
+        }
+    
+        _isProcessing = false;
+    }
 }
