@@ -154,5 +154,8 @@ public class GameManager : MonoBehaviour
             cardScript.SetupCard(cardID, cardIcons[cardID]);
             allCards.Add(cardScript);
         }
+
+        // Kartları oluşturduktan sonra:
+        StartCoroutine(StartGameSequence());
     }
 }
