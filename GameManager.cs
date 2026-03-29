@@ -23,6 +23,10 @@ public class GameManager : MonoBehaviour
     [Header("Score System")]
     public TextMeshProUGUI moveText; // Sahnedeki hamle yazısını buraya sürükle
     private int _moveCount = 0;
+
+    [Header("Level System")]
+    public List<LevelData> levels; // Oluşturduğun Level_1, Level_2 gibi dosyaları buraya sürükle
+    private int _currentLevelIndex = 0;
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -146,6 +150,14 @@ public class GameManager : MonoBehaviour
             idList.Add(i); // Çiftin birincisi
             idList.Add(i); // Çiftin ikincisi
         }
+
+        // Grid ayarlarını dinamik olarak güncelle
+        GridLayoutGroup gridLayout = cardGridParent.GetComponent<GridLayoutGroup>();
+        if (gridLayout != null)
+        {
+            gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            gridLayout.constraintCount = currentLevel.columnCount;
+        }
         
         // ID listesini karıştır
         for (int i = 0; i < idList.Count; i++)
@@ -189,5 +201,34 @@ public class GameManager : MonoBehaviour
         }
     
         _isProcessing = false;
+    }
+
+    public void LoadNextLevel()
+    {
+        _currentLevelIndex++;
+    
+        if (_currentLevelIndex < levels.Count)
+        {
+            // Bir sonraki leveli ayarla
+            currentLevel = levels[_currentLevelIndex];
+            
+            // UI'ları ve sayaçları sıfırla
+            _matchedPairs = 0;
+            _moveCount = 0;
+            UpdateUI();
+            
+            // WinPanel'i kapat
+            winPanelGroup.alpha = 0;
+            winPanelGroup.gameObject.SetActive(false);
+    
+            // Yeni gridi oluştur
+            GenerateLevel();
+            StartCoroutine(StartGameSequence());
+        }
+        else
+        {
+            Debug.Log("Tüm oyun bitti! Tebrikler.");
+            // Burada bir "Tebrikler, tüm bölümleri bitirdin" paneli açılabilir.
+        }
     }
 }
