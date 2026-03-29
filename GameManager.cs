@@ -19,6 +19,10 @@ public class GameManager : MonoBehaviour
     public GameObject cardPrefab;  // Prefab klasöründeki Card objesini buraya sürükle
     public Transform cardGridParent; // Hierarchy'deki CardGrid objesini buraya sürükle
     public List<Sprite> cardIcons; // Kartların üzerine gelecek resimler
+
+    [Header("Score System")]
+    public TextMeshProUGUI moveText; // Sahnedeki hamle yazısını buraya sürükle
+    private int _moveCount = 0;
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -35,10 +39,8 @@ public class GameManager : MonoBehaviour
     public void OnCardFlipped(Card flippedCard)
     {
         if (_isProcessing) return;
-
-        // Aynı karta iki kez tıklanmasını engelle
         if (flippedCard == _firstSelected) return;
-
+    
         if (_firstSelected == null)
         {
             _firstSelected = flippedCard;
@@ -48,8 +50,18 @@ public class GameManager : MonoBehaviour
         {
             _secondSelected = flippedCard;
             _secondSelected.ShowCard();
+            
+            _moveCount++; // Her iki kart açıldığında hamleyi artır
+            UpdateUI();
+            
             StartCoroutine(CheckMatchRoutine());
         }
+    }
+    
+    void UpdateUI()
+    {
+        if (moveText != null)
+            moveText.text = "Hamle: " + _moveCount;
     }
 
     private IEnumerator CheckMatchRoutine()
