@@ -28,16 +28,38 @@ public class GameManager : MonoBehaviour
     [Header("Level System")]
     public List<LevelData> levels; // Oluşturduğun Level_1, Level_2 gibi dosyaları buraya sürükle
     private int _currentLevelIndex = 0;
+
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip flipSound;
+    public AudioClip matchSound;
+    public AudioClip failSound;
     
     private Card _firstSelected;
     private Card _secondSelected;
     private bool _isProcessing = false;
     private int _matchedPairs = 0;
     private bool _isTimerRunning = false;
+    private float _remainingTime;
 
     void Awake()
     {
         Instance = this;
+    }
+
+    void Update()
+    {
+        if (_timerActive)
+        {
+            _remainingTime -= Time.deltaTime;
+            // UI güncelleme (Örn: timerText.text = _remainingTime.ToString("F0");)
+    
+            if (_remainingTime <= 0)
+            {
+                _timerActive = false;
+                GameOver(); // Zaman bitti!
+            }
+        }
     }
 
     // Kart tıklandığında Card.cs tarafından çağrılır
@@ -231,5 +253,16 @@ public class GameManager : MonoBehaviour
             Debug.Log("Tüm oyun bitti! Tebrikler.");
             // Burada bir "Tebrikler, tüm bölümleri bitirdin" paneli açılabilir.
         }
+    }
+
+    public void PlaySound(AudioClip clip)
+    {
+        if (clip != null) audioSource.PlayOneShot(clip);
+    }
+
+    public void StartTimer(float seconds)
+    {
+        _remainingTime = seconds;
+        _timerActive = true;
     }
 }
