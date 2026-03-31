@@ -38,27 +38,29 @@ public class Card : MonoBehaviour
 
     private IEnumerator FlipRoutine(bool showingFront)
     {
-        float duration = 0.2f;
+        float duration = 0.4f; // 0.2f çok hızlıydı, 0.4f idealdir
         float elapsed = 0f;
     
-        // 1. Kartı daralt (Kapanıyormuş gibi)
-        while (elapsed < duration)
+        // 1. Kartı Y ekseninde küçültürken biraz yukarı "zıplatma" (Opsiyonel derinlik hissi)
+        while (elapsed < duration / 2)
         {
             elapsed += Time.deltaTime;
-            float scale = Mathf.Lerp(1, 0, elapsed / duration);
-            transform.localScale = new Vector3(scale, 1, 1);
+            float t = elapsed / (duration / 2);
+            float scale = Mathf.Lerp(1, 0, t);
+            transform.localScale = new Vector3(scale, 1.1f, 1); // Hafifçe uzasın
             yield return null;
         }
     
-        // 2. Tam bu noktada görseli değiştir
+        // Görsel değişimi tam 90 derecedeyken (scale 0 iken) yapıyoruz
         backVisual.SetActive(!showingFront);
     
-        // 3. Kartı tekrar genişlet (Açılıyormuş gibi)
         elapsed = 0f;
-        while (elapsed < duration)
+        // 2. Kartı tekrar genişlet
+        while (elapsed < duration / 2)
         {
             elapsed += Time.deltaTime;
-            float scale = Mathf.Lerp(0, 1, elapsed / duration);
+            float t = elapsed / (duration / 2);
+            float scale = Mathf.Lerp(0, 1, t);
             transform.localScale = new Vector3(scale, 1, 1);
             yield return null;
         }
