@@ -34,6 +34,10 @@ public class GameManager : MonoBehaviour
     public AudioClip flipSound;
     public AudioClip matchSound;
     public AudioClip failSound;
+
+    [Header("Timer UI")]
+    public TextMeshProUGUI timerText; // Hierarchy'deki geri sayım metnini buraya sürükle
+    public CanvasGroup gameOverPanelGroup; // Yenilgi panelini buraya sürükle
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -52,12 +56,21 @@ public class GameManager : MonoBehaviour
         if (_timerActive)
         {
             _remainingTime -= Time.deltaTime;
-            // UI güncelleme (Örn: timerText.text = _remainingTime.ToString("F0");)
+    
+            // Süreyi ekranda formatlı göster (Örn: 00:15)
+            if (timerText != null)
+            {
+                timerText.text = "Süre: " + Mathf.CeilToInt(_remainingTime).ToString();
+                
+                // Süre 5 saniyeden az kalınca yazıyı kırmızı yapıp oyuncuyu uyarabilirsin
+                if (_remainingTime < 5f) timerText.color = Color.red;
+                else timerText.color = Color.white;
+            }
     
             if (_remainingTime <= 0)
             {
-                _timerActive = false;
-                GameOver(); // Zaman bitti!
+                _remainingTime = 0;
+                GameOver();
             }
         }
     }
@@ -264,5 +277,19 @@ public class GameManager : MonoBehaviour
     {
         _remainingTime = seconds;
         _timerActive = true;
+    }
+
+    public void GameOver()
+    {
+        _timerActive = false;
+        _isProcessing = true; // Oyuncunun daha fazla kart açmasını engelle
+        
+        Debug.Log("Süre Doldu! Kaybettin.");
+        
+        // Eğer bir yenilgi panelin varsa onu açalım
+        if (gameOverPanelGroup != null)
+        {
+            StartCoroutine(FadeInPanel(gameOverPanelGroup));
+        }
     }
 }
