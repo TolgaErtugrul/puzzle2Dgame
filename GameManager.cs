@@ -138,8 +138,11 @@ public class GameManager : MonoBehaviour
 
     public void WinGame()
     {
+        _timerActive = false; // 👈 SÜREYİ DURDURUR
         _isTimerRunning = false;
-        Debug.Log("Oyun Kazandı!");
+        
+        Debug.Log("Tebrikler! Seviye Tamamlandı.");
+        
         if (winPanelGroup != null)
         {
             StartCoroutine(FadeInPanel(winPanelGroup));
@@ -164,38 +167,40 @@ public class GameManager : MonoBehaviour
 
     public void GenerateLevel()
     {
-        if (currentLevel == null) return; // Hata almamak için kontrol
-        
-        // Eski kartları temizle
-        foreach (Transform child in cardGridParent) { Destroy(child.gameObject); }
-        allCards.Clear();
+        if (currentLevel == null) return;
     
-        int totalCards = currentLevel.rowCount * currentLevel.columnCount;
-        totalPairs = totalCards / 2;
-    
-        // Önce griddeki eski kartları temizle (varsa)
-        foreach (Transform child in cardGridParent) { Destroy(child.gameObject); }
-        allCards.Clear();
-    
-        int totalCards = currentLevel.rowCount * currentLevel.columnCount;
-        totalPairs = totalCards / 2;
-    
-        List<int> idList = new List<int>();
-        for (int i = 0; i < totalPairs; i++)
-        {
-            idList.Add(i); // Çiftin birincisi
-            idList.Add(i); // Çiftin ikincisi
-        }
-
-        // Grid ayarlarını dinamik olarak güncelle
+        // 1. Grid Ayarlarını Güncelle (Format Sorunu Çözümü)
         GridLayoutGroup gridLayout = cardGridParent.GetComponent<GridLayoutGroup>();
         if (gridLayout != null)
         {
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             gridLayout.constraintCount = currentLevel.columnCount;
         }
-        
-        // ID listesini karıştır
+    
+        // 2. Süreyi ve Sayaçları Seviye Verisine Göre Sıfırla
+        _remainingTime = currentLevel.timeLimit; // Seviye dosyasındaki süreyi al
+        _timerActive = true; // Süreyi başlat
+        _matchedPairs = 0;
+        _moveCount = 0;
+        UpdateUI();
+    
+        // 3. Eski Kartları Temizle
+        foreach (Transform child in cardGridParent) { Destroy(child.gameObject); }
+        allCards.Clear();
+    
+        // 4. Kart Sayısını ve Çiftleri Hesapla
+        int totalCards = currentLevel.rowCount * currentLevel.columnCount;
+        totalPairs = totalCards / 2;
+    
+        // ID Listesini Hazırla (Eşleşme Mantığı)
+        List<int> idList = new List<int>();
+        for (int i = 0; i < totalPairs; i++)
+        {
+            idList.Add(i);
+            idList.Add(i);
+        }
+    
+        // Listeyi Karıştır (Shuffle)
         for (int i = 0; i < idList.Count; i++)
         {
             int temp = idList[i];
@@ -204,19 +209,20 @@ public class GameManager : MonoBehaviour
             idList[randomIndex] = temp;
         }
     
-        // Kartları oluştur
+        // 5. Kartları Oluştur
         for (int i = 0; i < totalCards; i++)
         {
             GameObject newCard = Instantiate(cardPrefab, cardGridParent);
             Card cardScript = newCard.GetComponent<Card>();
             
             int cardID = idList[i];
-            cardScript.SetupCard(cardID, cardIcons[cardID]);
+            // Resim listesinde bu ID'ye karşılık gelen bir sprite olduğundan emin ol
+            if (cardID < cardIcons.Count)
+            {
+                cardScript.SetupCard(cardID, cardIcons[cardID]);
+            }
             allCards.Add(cardScript);
         }
-
-        // Kartları oluşturduktan sonra:
-        StartCoroutine(StartGameSequence());
     }
 
     public IEnumerator StartGameSequence()
