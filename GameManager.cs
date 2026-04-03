@@ -107,19 +107,20 @@ public class GameManager : MonoBehaviour
     private IEnumerator CheckMatchRoutine()
     {
         _isProcessing = true;
-
-        // Kartların dönme animasyonu için bekle
-        yield return new WaitForSeconds(0.6f);
-
+        // Kartların dönme animasyonu bitene kadar kısa bir süre bekleyelim
+        yield return new WaitForSeconds(0.4f); 
+    
         if (_firstSelected.GetID() == _secondSelected.GetID())
         {
-            // ✅ EŞLEŞME OLDU
+            // ✅ EŞLEŞME OLDU!
             _firstSelected.SetMatched();
             _secondSelected.SetMatched();
             _matchedPairs++;
-
+    
+            // KRİTİK NOKTA: Eğer son çiftse, beklemeye girmeden saati DURDUR
             if (_matchedPairs >= totalPairs)
             {
+                _timerActive = false; // Saat hemen burada dursun
                 WinGame();
             }
         }
@@ -130,7 +131,7 @@ public class GameManager : MonoBehaviour
             _firstSelected.HideCard();
             _secondSelected.HideCard();
         }
-
+    
         _firstSelected = null;
         _secondSelected = null;
         _isProcessing = false;
@@ -138,11 +139,11 @@ public class GameManager : MonoBehaviour
 
     public void WinGame()
     {
-        _timerActive = false; // 👈 SÜREYİ DURDURUR
-        _isTimerRunning = false;
+        _timerActive = false; // saati durdur
+        _isTimerRunning = false; 
         
-        Debug.Log("Tebrikler! Seviye Tamamlandı.");
-        
+        Debug.Log("Oyun bitti, süre durduruldu: " + _remainingTime);
+    
         if (winPanelGroup != null)
         {
             StartCoroutine(FadeInPanel(winPanelGroup));
