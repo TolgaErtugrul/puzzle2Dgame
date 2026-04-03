@@ -299,4 +299,46 @@ public class GameManager : MonoBehaviour
             StartCoroutine(FadeInPanel(gameOverPanelGroup));
         }
     }
+
+    // --- REKLAM / DEVAM ET MANTIĞI ---
+    public void WatchAdAndContinue()
+    {
+        // Reklam izleme kodu ileride buraya gelecek. 
+        // Şimdilik butona basıldığı anda süreyi ekler:
+        
+        _remainingTime += 10f; // 10 saniye ekle
+        _timerActive = true;   // Sayacı tekrar başlat
+        _isProcessing = false; // Kartlara tıklamayı tekrar aç
+        
+        // Yenilgi panelini kapat
+        if (gameOverPanelGroup != null)
+        {
+            gameOverPanelGroup.alpha = 0;
+            gameOverPanelGroup.interactable = false;
+            gameOverPanelGroup.blocksRaycasts = false;
+            gameOverPanelGroup.gameObject.SetActive(false);
+        }
+        
+        Debug.Log("Reklam izlendi, +10 saniye eklendi!");
+    }
+    
+    // --- BÖLÜMÜ SIFIRLA MANTIĞI ---
+    public void RestartLevel()
+    {
+        // Tüm değişkenleri sıfırla
+        _matchedPairs = 0;
+        _moveCount = 0;
+        UpdateUI();
+    
+        // Paneli kapat
+        if (gameOverPanelGroup != null)
+        {
+            gameOverPanelGroup.alpha = 0;
+            gameOverPanelGroup.gameObject.SetActive(false);
+        }
+    
+        // Seviyeyi yeniden oluştur ve süreyi başlat
+        GenerateLevel();
+        StartCoroutine(StartGameSequence());
+    }
 }
