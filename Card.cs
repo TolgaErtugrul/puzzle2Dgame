@@ -76,11 +76,17 @@ public class Card : MonoBehaviour
     public void SetMatched()
     {
         _isMatched = true;
-        _isFlipped = true; // Kartın açık kalmasını sağlar
         
-        // Eşleşen kartları sahneden silmek yerine görünmez yapabiliriz
-        // Ya da bir animasyon oynatıp sonra kapatabiliriz
-        StartCoroutine(MatchAnimationRoutine());
+        // Objenin kendisini kapatmak yerine (SetActive(false)) 
+        // sadece görsellerini ve tıklanabilirliğini kapatıyoruz.
+        // Böylece hiyerarşide yer kaplamaya devam eder ve Grid kaymaz.
+        
+        CanvasGroup cg = GetComponent<CanvasGroup>();
+        if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
+        
+        cg.alpha = 0; // Görünmez yap
+        cg.interactable = false; // Tıklanamaz yap
+        cg.blocksRaycasts = false; // Tıklamayı arkaya geçir
     }
     
     private IEnumerator MatchAnimationRoutine()
