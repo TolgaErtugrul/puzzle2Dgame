@@ -1,29 +1,39 @@
 using UnityEngine;
+using Unity.Services.Mediation;
 
 public class AdsManager : MonoBehaviour
 {
-    void Start()
+    public string adUnitId = "Rewarded_Android"; 
+    IRewardedAd rewardedAd;
+
+    async void Start()
     {
-        // Ödüllü reklam etkinliklerini dinle
-        IronSourceRewardedVideoEvents.onAdRewardedEvent += RewardedVideoAdRewardedEvent;
+        // Reklam objesini oluştur
+        rewardedAd = MediationService.Instance.CreateRewardedAd(adUnitId);
+        
+        // Etkinlikleri dinle
+        rewardedAd.OnUserRewarded += UserRewarded;
+        
+        // Reklamı yükle
+        await rewardedAd.LoadAsync();
     }
 
-    public void ShowAd()
+    public async void ShowAd()
     {
-        if (IronSource.Agent.isRewardedVideoAvailable())
+        if (rewardedAd.AdState == AdState.Loaded)
         {
-            IronSource.Agent.showRewardedVideo();
+            await rewardedAd.ShowAsync();
         }
         else
         {
-            Debug.Log("Reklam henüz hazır değil!");
+            Debug.Log("Reklam henüz hazır değil, tekrar yükleniyor...");
+            await rewardedAd.LoadAsync();
         }
     }
 
-    // Reklam başarıyla izlendiğinde çalışacak fonksiyon
-    void RewardedVideoAdRewardedEvent(IronSourcePlacement placement, IronSourceAdInfo adInfo)
+    void UserRewarded(object sender, RewardEventArgs e)
     {
-        Debug.Log("Reklam tamamlandı! Ödül veriliyor...");
+        Debug.Log("Ödül kazanıldı!");
         GameManager.Instance.WatchAdAndContinue();
     }
 }
