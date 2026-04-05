@@ -1,36 +1,29 @@
 using UnityEngine;
-using UnityEngine.Advertisements;
 
-public class AdsManager : MonoBehaviour, IAdsLoadListener, IAdsShowListener
+public class AdsManager : MonoBehaviour
 {
-    public string adUnitId = "Rewarded_Android"; // Dashboard'da "Placements" kısmında yazar
-
-    public void LoadAd()
+    void Start()
     {
-        Debug.Log("Reklam yükleniyor...");
-        Advertisement.Load(adUnitId, this);
+        // Ödüllü reklam etkinliklerini dinle
+        IronSourceRewardedVideoEvents.onAdRewardedEvent += RewardedVideoAdRewardedEvent;
     }
 
     public void ShowAd()
     {
-        Debug.Log("Reklam gösteriliyor...");
-        Advertisement.Show(adUnitId, this);
-    }
-
-    // Reklam bittiğinde çalışacak olan yer burası!
-    public void OnUnityAdsShowComplete(string placementId, UnityAdsShowCompletionState showCompletionState)
-    {
-        if (showCompletionState == UnityAdsShowCompletionState.COMPLETED)
+        if (IronSource.Agent.isRewardedVideoAvailable())
         {
-            // OYUNCU REKLAMI BİTİRDİ - ÖDÜLÜ VER!
-            GameManager.Instance.WatchAdAndContinue();
+            IronSource.Agent.showRewardedVideo();
+        }
+        else
+        {
+            Debug.Log("Reklam henüz hazır değil!");
         }
     }
 
-    // Diğer zorunlu interface fonksiyonları (boş kalabilirler)
-    public void OnAdsAdLoaded(string placementId) { }
-    public void OnAdsFailedToLoad(string placementId, AdsLoadError error, string message) { }
-    public void OnUnityAdsShowFailure(string placementId, UnityAdsShowError error, string message) { }
-    public void OnUnityAdsShowStart(string placementId) { }
-    public void OnUnityAdsShowClick(string placementId) { }
+    // Reklam başarıyla izlendiğinde çalışacak fonksiyon
+    void RewardedVideoAdRewardedEvent(IronSourcePlacement placement, IronSourceAdInfo adInfo)
+    {
+        Debug.Log("Reklam tamamlandı! Ödül veriliyor...");
+        GameManager.Instance.WatchAdAndContinue();
+    }
 }
