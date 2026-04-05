@@ -1,28 +1,20 @@
 using UnityEngine;
-using UnityEngine.Advertisements;
+// LevelPlay (ironSource) kütüphanesini kullanıyoruz
+using com.unity3d.mediation; 
 
-public class AdsInitializer : MonoBehaviour, IAdsInitializationListener
+public class AdsInitializer : MonoBehaviour
 {
     [SerializeField] string _androidGameId = "SENIN_ID_BURAYA";
-    [SerializeField] bool _testMode = true;
 
     void Awake()
     {
-        InitializeAds();
+        // LevelPlay başlatma komutu
+        IronSource.Agent.init(_androidGameId);
+        Debug.Log("LevelPlay Başlatılıyor...");
     }
 
-    public void InitializeAds()
+    void OnApplicationPause(bool isPaused)
     {
-        Advertisement.Initialize(_androidGameId, _testMode, this);
-    }
-
-    public void OnInitializationComplete()
-    {
-        Debug.Log("Unity Ads Başarıyla Başlatıldı.");
-    }
-
-    public void OnInitializationFailed(UnityAdsInitializationError error, string message)
-    {
-        Debug.Log($"Unity Ads Başlatılamadı: {error} - {message}");
+        IronSource.Agent.onApplicationPause(isPaused);
     }
 }
