@@ -1,0 +1,25 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+public class AudioManager : MonoBehaviour
+{
+    public static AudioManager Instance;
+    public AudioSource musicSource;
+    public AudioSource sfxSource;
+
+    void Awake()
+    {
+        Instance = this;
+        // Kayıtlı ses ayarını yükle (Varsayılan: 1 yani Açık)
+        float savedVolume = PlayerPrefs.GetFloat("MusicVolume", 1f);
+        musicSource.volume = savedVolume;
+    }
+
+    public void ToggleMusic(bool isOn)
+    {
+        float volume = isOn ? 1f : 0f;
+        musicSource.volume = volume;
+        PlayerPrefs.SetFloat("MusicVolume", volume);
+        PlayerPrefs.Save();
+    }
+}
