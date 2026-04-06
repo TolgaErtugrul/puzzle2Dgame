@@ -1,39 +1,61 @@
+using Unity.Services.LevelPlay; // Örnekte gördüğün kütüphane
 using UnityEngine;
-using Unity.Services.Mediation;
 
 public class AdsManager : MonoBehaviour
 {
-    public string adUnitId = "Rewarded_Android"; 
-    IRewardedAd rewardedAd;
+    public static AdsManager Instance; // Kolay erişim için
+    private LevelPlayRewardedAd rewardedVideoAd;
 
-    async void Start()
+    void Awake()
     {
-        // Reklam objesini oluştur
-        rewardedAd = MediationService.Instance.CreateRewardedAd(adUnitId);
-        
-        // Etkinlikleri dinle
-        rewardedAd.OnUserRewarded += UserRewarded;
-        
-        // Reklamı yükle
-        await rewardedAd.LoadAsync();
+        Instance = this;
     }
 
-    public async void ShowAd()
+    void Start()
     {
-        if (rewardedAd.AdState == AdState.Loaded)
+        // SDK Başlatma (Örnekteki gibi)
+        LevelPlay.OnInitSuccess += OnSdkInitSuccess;
+        LevelPlay.Init(AdConfig.AppKey);
+    }
+
+    void OnSdkInitSuccess(LevelPlayConfiguration config)
+    {
+        Debug.Log("Ads SDK Hazır!");
+        SetupRewardedAd();
+    }
+
+    void SetupRewardedAd()
+    {
+        // Reklam objesini oluştur
+        rewardedVideoAd = new LevelPlayRewardedAd(AdConfig.RewardedVideoAdUnitId);
+
+        // Ödül olayını dinle (En önemli kısım burası)
+        rewardedVideoAd.OnAdRewarded += OnUserRewarded;
+        
+        // Reklamı yükle
+        rewardedVideoAd.LoadAd();
+    }
+
+    public void ShowRewardedAd()
+    {
+        if (rewardedVideoAd != null && rewardedVideoAd.IsAdReady())
         {
-            await rewardedAd.ShowAsync();
+            rewardedVideoAd.ShowAd();
         }
         else
         {
             Debug.Log("Reklam henüz hazır değil, tekrar yükleniyor...");
-            await rewardedAd.LoadAsync();
+            rewardedVideoAd.LoadAd();
         }
     }
 
-    void UserRewarded(object sender, RewardEventArgs e)
+    // Oyuncu reklamı bitirince çalışacak fonksiyon
+    void OnUserRewarded(LevelPlayAdInfo adInfo, LevelPlayReward reward)
     {
-        Debug.Log("Ödül kazanıldı!");
+        Debug.Log("Reklam başarıyla izlendi!");
         GameManager.Instance.WatchAdAndContinue();
+        
+        // Bir sonraki kullanım için reklamı tekrar yükle
+        rewardedVideoAd.LoadAd();
     }
 }
