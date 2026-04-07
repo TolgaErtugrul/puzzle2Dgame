@@ -76,24 +76,23 @@ public class GameManager : MonoBehaviour
     }
 
     // Kart tıklandığında Card.cs tarafından çağrılır
-    public void OnCardFlipped(Card flippedCard)
+    public void OnCardClicked(Card clickedCard)
     {
-        if (_isProcessing) return;
-        if (flippedCard == _firstSelected) return;
+        // EĞER: Sistem işlem yapıyorsa VEYA kart zaten eşleşmişse VEYA aynı karta tekrar basılıyorsa -> İZİN VERME
+        if (_isProcessing || clickedCard.IsMatched || clickedCard == _firstSelected) 
+            return;
+    
+        clickedCard.ShowCard();
     
         if (_firstSelected == null)
         {
-            _firstSelected = flippedCard;
-            _firstSelected.ShowCard();
+            _firstSelected = clickedCard;
         }
         else
         {
-            _secondSelected = flippedCard;
-            _secondSelected.ShowCard();
-            
-            _moveCount++; // Her iki kart açıldığında hamleyi artır
-            UpdateUI();
-            
+            _secondSelected = clickedCard;
+            // İkinci kart seçildiği an tıklamayı KİLİTLE!
+            _isProcessing = true; 
             StartCoroutine(CheckMatchRoutine());
         }
     }
@@ -224,6 +223,8 @@ public class GameManager : MonoBehaviour
             }
             allCards.Add(cardScript);
         }
+
+        StartCoroutine(ShowCardsAtStart());
     }
 
     public IEnumerator StartGameSequence()
@@ -340,5 +341,27 @@ public class GameManager : MonoBehaviour
         // Seviyeyi yeniden oluştur ve süreyi başlat
         GenerateLevel();
         StartCoroutine(StartGameSequence());
+    }
+
+    private IEnumerator ShowCardsAtStart()
+    {
+        _isProcessing = true; // Oyuncunun bu sırada kartlara basmasını engelle
+    
+        // Tüm kartları aç
+        foreach (var card in allCards)
+        {
+            card.ShowCard(); 
+        }
+    
+        yield return new WaitForSeconds(1.5f); // 1.5 saniye bekle (Süreyi kendine göre ayarla)
+    
+        // Tüm kartları geri kapat
+        foreach (var card in allCards)
+        {
+            card.HideCard();
+        }
+    
+        _isProcessing = false; // Oyuncuya izin ver
+        _timerActive = true;   // Süreyi kartlar kapandığı an başlat (Adaletli olsun!)
     }
 }
