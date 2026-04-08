@@ -105,7 +105,6 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator CheckMatchRoutine()
     {
-        _isProcessing = true;
         // Kartların dönme animasyonu bitene kadar kısa bir süre bekleyelim
         yield return new WaitForSeconds(0.4f); 
     
@@ -115,11 +114,11 @@ public class GameManager : MonoBehaviour
             _firstSelected.SetMatched();
             _secondSelected.SetMatched();
             _matchedPairs++;
+            PlaySound(matchSound);
     
             // KRİTİK NOKTA: Eğer son çiftse, beklemeye girmeden saati DURDUR
             if (_matchedPairs >= totalPairs)
             {
-                _timerActive = false; // Saat hemen burada dursun
                 WinGame();
             }
         }
@@ -129,11 +128,17 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
             _firstSelected.HideCard();
             _secondSelected.HideCard();
+            PlaySound(failSound);
         }
     
         _firstSelected = null;
         _secondSelected = null;
-        _isProcessing = false;
+
+        // Eğer oyun bittiyse (WinGame çalıştıysa) kilidi açmamıza gerek yok
+        if (_matchedPairs < totalPairs)
+        {
+            _isProcessing = false;
+        }
     }
 
     public void WinGame()
@@ -363,5 +368,36 @@ public class GameManager : MonoBehaviour
     
         _isProcessing = false; // Oyuncuya izin ver
         _timerActive = true;   // Süreyi kartlar kapandığı an başlat (Adaletli olsun!)
+    }
+
+    public void OnCardFlipped(Card flippedCard)
+    {
+        // 1. KİLİT: Eğer işlem yapılıyorsa veya kart zaten eşleşmişse basılmasın
+        if (_isProcessing || flippedCard.IsMatched) return;
+    
+        // 2. KİLİT: Aynı karta üst üste basılmasın
+        if (flippedCard == _firstSelected) return;
+    
+        if (_firstSelected == null)
+        {
+            _firstSelected = flippedCard;
+            PlaySound(flipSound);
+            _firstSelected.ShowCard();
+        }
+        else
+        {
+            _secondSelected = flippedCard;
+            PlaySound(flipSound);
+            _secondSelected.ShowCard();
+    
+            _moveCount++;
+            UpdateUI();
+    
+            // 🔥 KRİTİK DÜZENLEME: İkinci kart seçildiği an kilidi kapatıyoruz!
+            // Coroutine içine girmeden hemen önce burada true yapmalıyız.
+            _isProcessing = true; 
+            
+            StartCoroutine(CheckMatchRoutine());
+        }
     }
 }
