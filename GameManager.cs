@@ -229,7 +229,7 @@ public class GameManager : MonoBehaviour
             allCards.Add(cardScript);
         }
 
-        StartCoroutine(ShowCardsAtStart());
+        StartCoroutine(ShowCardsPreviewRoutine());
     }
 
     public IEnumerator StartGameSequence()
@@ -399,5 +399,30 @@ public class GameManager : MonoBehaviour
             
             StartCoroutine(CheckMatchRoutine());
         }
+    }
+
+    private IEnumerator ShowCardsPreviewRoutine()
+    {
+        _isProcessing = true; // Oyuncu bu sırada basamasın
+        _timerActive = false; // Sayaç henüz başlamasın
+    
+        yield return new WaitForSeconds(0.5f); // Kısa bir bekleme (sahne yüklensin)
+    
+        // Tüm kartları aç
+        foreach (Card card in allCards)
+        {
+            card.ShowCard();
+        }
+    
+        yield return new WaitForSeconds(1.5f); // Oyuncunun ezberlemesi için süre
+    
+        // Tüm kartları geri kapat
+        foreach (Card card in allCards)
+        {
+            card.HideCard();
+        }
+    
+        _isProcessing = false; // Tıklamaları aç
+        _timerActive = true;   // Süreyi şimdi başlat!
     }
 }
