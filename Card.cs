@@ -10,7 +10,7 @@ public class Card : MonoBehaviour
 
     private int _cardID; // Hangi kartla eşleşeceğini bilmek için
     private bool _isFlipped = false;
-    private bool _isMatched = false;
+    public bool _isMatched = false;
 
     // Kartın ID'sini ve görselini ayarlayan fonksiyon
     public void SetupCard(int id, Sprite icon)
@@ -82,11 +82,12 @@ public class Card : MonoBehaviour
         // Böylece hiyerarşide yer kaplamaya devam eder ve Grid kaymaz.
         
         CanvasGroup cg = GetComponent<CanvasGroup>();
-        if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
-        
-        cg.alpha = 0; // Görünmez yap
-        cg.interactable = false; // Tıklanamaz yap
-        cg.blocksRaycasts = false; // Tıklamayı arkaya geçir
+        if (cg != null)
+        {
+            cg.alpha = 0;
+            cg.interactable = false;
+            cg.blocksRaycasts = false;
+        }
     }
     
     private IEnumerator MatchAnimationRoutine()
