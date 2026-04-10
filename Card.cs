@@ -24,10 +24,14 @@ public class Card : MonoBehaviour
 
     public void ShowCard()
     {
-        if (_isMatched || _isFlipped) return;
+        // 🔥 DÜZELTME: Eğer GameManager bir işlem yapıyorsa (kartları kapatıyor, eşleşme bakıyor vb.) 
+        // veya bu kart zaten eşleşmişse tıklamaya izin verme!
+        if (GameManager.Instance.IsSystemBusy() || _isMatched || _isFlipped) return;
         
         _isFlipped = true;
-        backVisual.SetActive(false); // Arka kapağı gizle, ön yüz görünsün
+        backVisual.SetActive(false); 
+    
+        GameManager.Instance.OnCardFlipped(this);
     }
 
     public void HideCard()
