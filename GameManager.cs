@@ -174,7 +174,7 @@ public class GameManager : MonoBehaviour
     {
         if (currentLevel == null) return;
     
-        // 1. Grid Ayarlarını Güncelle (Format Sorunu Çözümü)
+        // Grid ayarları
         GridLayoutGroup gridLayout = cardGridParent.GetComponent<GridLayoutGroup>();
         if (gridLayout != null)
         {
@@ -182,30 +182,22 @@ public class GameManager : MonoBehaviour
             gridLayout.constraintCount = currentLevel.columnCount;
         }
     
-        // 2. Süreyi ve Sayaçları Seviye Verisine Göre Sıfırla
-        _remainingTime = currentLevel.timeLimit; // Seviye dosyasındaki süreyi al
-        _timerActive = true; // Süreyi başlat
+        // ⚠️ DÜZELTME: Süreyi burada BAŞLATMIYORUZ, sadece tanımlıyoruz.
+        _remainingTime = currentLevel.timeLimit; 
+        _timerActive = false; // Henüz kapalı
         _matchedPairs = 0;
         _moveCount = 0;
         UpdateUI();
     
-        // 3. Eski Kartları Temizle
+        // Temizlik ve Kart Oluşturma
         foreach (Transform child in cardGridParent) { Destroy(child.gameObject); }
         allCards.Clear();
     
-        // 4. Kart Sayısını ve Çiftleri Hesapla
         int totalCards = currentLevel.rowCount * currentLevel.columnCount;
         totalPairs = totalCards / 2;
     
-        // ID Listesini Hazırla (Eşleşme Mantığı)
         List<int> idList = new List<int>();
-        for (int i = 0; i < totalPairs; i++)
-        {
-            idList.Add(i);
-            idList.Add(i);
-        }
-    
-        // Listeyi Karıştır (Shuffle)
+        for (int i = 0; i < totalPairs; i++) { idList.Add(i); idList.Add(i); }
         for (int i = 0; i < idList.Count; i++)
         {
             int temp = idList[i];
@@ -214,22 +206,18 @@ public class GameManager : MonoBehaviour
             idList[randomIndex] = temp;
         }
     
-        // 5. Kartları Oluştur
         for (int i = 0; i < totalCards; i++)
         {
             GameObject newCard = Instantiate(cardPrefab, cardGridParent);
             Card cardScript = newCard.GetComponent<Card>();
-            
-            int cardID = idList[i];
-            // Resim listesinde bu ID'ye karşılık gelen bir sprite olduğundan emin ol
-            if (cardID < cardIcons.Count)
-            {
-                cardScript.SetupCard(cardID, cardIcons[cardID]);
-            }
+            if (idList[i] < cardIcons.Count)
+                cardScript.SetupCard(idList[i], cardIcons[idList[i]]);
             allCards.Add(cardScript);
         }
-
-        StartCoroutine(ShowCardsPreviewRoutine());
+    
+        // 🚀 Tek bir coroutine başlatıyoruz
+        StopAllCoroutines(); 
+        StartCoroutine(ShowCardsAtStart());
     }
 
     public IEnumerator StartGameSequence()
@@ -350,24 +338,27 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ShowCardsAtStart()
     {
-        _isProcessing = true; // Oyuncunun bu sırada kartlara basmasını engelle
+        _isProcessing = true; 
+        _timerActive = false; // Kartlar gösterilirken süre akmasın
     
-        // Tüm kartları aç
+        yield return new WaitForSeconds(0.5f);
+    
+        // Kartları aç (Card.cs'deki kontrolü bypass etmek için doğrudan görsele müdahale)
         foreach (var card in allCards)
         {
-            card.ShowCard(); 
+            card.backVisual.SetActive(false);
         }
     
-        yield return new WaitForSeconds(1.5f); // 1.5 saniye bekle (Süreyi kendine göre ayarla)
+        yield return new WaitForSeconds(1.5f);
     
-        // Tüm kartları geri kapat
+        // Kartları kapat
         foreach (var card in allCards)
         {
             card.HideCard();
         }
     
-        _isProcessing = false; // Oyuncuya izin ver
-        _timerActive = true;   // Süreyi kartlar kapandığı an başlat (Adaletli olsun!)
+        _isProcessing = false; // Tıklamaları aç
+        _timerActive = true;   // SÜRE ŞİMDİ BAŞLASIN!
     }
 
     public void OnCardFlipped(Card flippedCard)
@@ -424,5 +415,10 @@ public class GameManager : MonoBehaviour
     
         _isProcessing = false; // Tıklamaları aç
         _timerActive = true;   // Süreyi şimdi başlat!
+    }
+
+    public bool IsSystemBusy()
+    {
+        return _isProcessing;
     }
 }
