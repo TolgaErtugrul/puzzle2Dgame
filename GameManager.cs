@@ -46,6 +46,8 @@ public class GameManager : MonoBehaviour
     private bool _isTimerRunning = false;
     private float _remainingTime;
 
+    public TextMeshProUGUI bestMoveText;
+
     void Awake()
     {
         Instance = this;
@@ -99,8 +101,10 @@ public class GameManager : MonoBehaviour
     
     void UpdateUI()
     {
-        if (moveText != null)
-            moveText.text = "Hamle: " + _moveCount;
+        moveText.text = "Hamle: " + _moveCount;
+        // En iyi skoru göster (Varsayılan 0 ise hiç oynanmamış demektir)
+        int best = PlayerPrefs.GetInt("BestScore_" + currentLevel.name, 0);
+        bestMoveText.text = "En İyi: " + (best == 0 ? "-" : best.ToString());
     }
 
     private IEnumerator CheckMatchRoutine()
@@ -151,6 +155,18 @@ public class GameManager : MonoBehaviour
         if (winPanelGroup != null)
         {
             StartCoroutine(FadeInPanel(winPanelGroup));
+        }
+
+        void SaveBestScore()
+        {
+            string key = "BestScore_" + currentLevel.name;
+            int currentBest = PlayerPrefs.GetInt(key, 0);
+        
+            if (currentBest == 0 || _moveCount < currentBest)
+            {
+                PlayerPrefs.SetInt(key, _moveCount);
+                PlayerPrefs.Save();
+            }
         }
     }
 
@@ -421,4 +437,6 @@ public class GameManager : MonoBehaviour
     {
         return _isProcessing;
     }
+
+    StartCoroutine(ShowCardsAtStart());
 }
