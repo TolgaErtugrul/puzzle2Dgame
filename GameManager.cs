@@ -118,7 +118,7 @@ public class GameManager : MonoBehaviour
             _firstSelected.SetMatched();
             _secondSelected.SetMatched();
             _matchedPairs++;
-            PlaySound(matchSound);
+            AudioManager.Instance.PlaySFX(matchSound);
     
             // KRİTİK NOKTA: Eğer son çiftse, beklemeye girmeden saati DURDUR
             if (_matchedPairs >= totalPairs)
@@ -132,7 +132,7 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
             _firstSelected.HideCard();
             _secondSelected.HideCard();
-            PlaySound(failSound);
+            AudioManager.Instance.PlaySFX(failSound);
         }
     
         _firstSelected = null;
@@ -388,13 +388,13 @@ public class GameManager : MonoBehaviour
         if (_firstSelected == null)
         {
             _firstSelected = flippedCard;
-            PlaySound(flipSound);
+            AudioManager.Instance.PlaySFX(flipSound);
             _firstSelected.ShowCard();
         }
         else
         {
             _secondSelected = flippedCard;
-            PlaySound(flipSound);
+            AudioManager.Instance.PlaySFX(flipSound);
             _secondSelected.ShowCard();
     
             _moveCount++;
