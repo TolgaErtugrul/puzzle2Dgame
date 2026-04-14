@@ -25,7 +25,10 @@ public class AudioManager : MonoBehaviour
 
     public void PlaySFX(AudioClip clip)
     {
-        if (sfxSource.volume > 0) // Eğer ses açıksa çal
+        if (sfxSource != null && clip != null)
+        {
+            // SFX Source'un ses seviyesi (volume) 0 değilse çal
             sfxSource.PlayOneShot(clip);
+        }
     }
 }
