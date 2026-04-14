@@ -46,6 +46,8 @@ public class GameManager : MonoBehaviour
     private bool _isTimerRunning = false;
     private float _remainingTime;
 
+    public GameObject matchEffectPrefab;
+
     public TextMeshProUGUI bestMoveText;
 
     void Awake()
@@ -111,9 +113,13 @@ public class GameManager : MonoBehaviour
     {
         // Kartların dönme animasyonu bitene kadar kısa bir süre bekleyelim
         yield return new WaitForSeconds(0.4f); 
-    
-        if (_firstSelected.GetID() == _secondSelected.GetID())
-        {
+        
+    if (_firstSelected.GetID() == _secondSelected.GetID())
+    {
+        // Efekti birinci kartın olduğu yerde oluştur
+        Instantiate(matchEffectPrefab, _firstSelected.transform.position, Quaternion.identity);
+        // Efekti ikinci kartın olduğu yerde oluştur
+        Instantiate(matchEffectPrefab, _secondSelected.transform.position, Quaternion.identity);
             // ✅ EŞLEŞME OLDU!
             _firstSelected.SetMatched();
             _secondSelected.SetMatched();
