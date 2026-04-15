@@ -38,6 +38,9 @@ public class GameManager : MonoBehaviour
     [Header("Timer UI")]
     public TextMeshProUGUI timerText; // Hierarchy'deki geri sayım metnini buraya sürükle
     public CanvasGroup gameOverPanelGroup; // Yenilgi panelini buraya sürükle
+
+    [Header("New Rules UI")]
+    public TextMeshProUGUI infoText;
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -109,47 +112,47 @@ public class GameManager : MonoBehaviour
         bestMoveText.text = "En İyi: " + (best == 0 ? "-" : best.ToString());
     }
 
-    private IEnumerator CheckMatchRoutine()
-    {
-        // Kartların dönme animasyonu bitene kadar kısa bir süre bekleyelim
-        yield return new WaitForSeconds(0.4f); 
-        
+    rivate IEnumerator CheckMatchRoutine()
+{
+    yield return new WaitForSeconds(0.4f);
+
     if (_firstSelected.GetID() == _secondSelected.GetID())
     {
-        // Efekti birinci kartın olduğu yerde oluştur
-        Instantiate(matchEffectPrefab, _firstSelected.transform.position, Quaternion.identity);
-        // Efekti ikinci kartın olduğu yerde oluştur
-        Instantiate(matchEffectPrefab, _secondSelected.transform.position, Quaternion.identity);
-            // ✅ EŞLEŞME OLDU!
-            _firstSelected.SetMatched();
-            _secondSelected.SetMatched();
-            _matchedPairs++;
-            AudioManager.Instance.PlaySFX(matchSound);
-    
-            // KRİTİK NOKTA: Eğer son çiftse, beklemeye girmeden saati DURDUR
-            if (_matchedPairs >= totalPairs)
-            {
-                WinGame();
-            }
-        }
-        else
-        {
-            // ❌ EŞLEŞME YOK
-            yield return new WaitForSeconds(0.5f);
-            _firstSelected.HideCard();
-            _secondSelected.HideCard();
-            AudioManager.Instance.PlaySFX(failSound);
-        }
-    
-        _firstSelected = null;
-        _secondSelected = null;
+        // ✅ EŞLEŞME OLDU (Aynı kalıyor)
+        _firstSelected.SetMatched();
+        _secondSelected.SetMatched();
+        _matchedPairs++;
+        AudioManager.Instance.PlaySFX(matchSound);
 
-        // Eğer oyun bittiyse (WinGame çalıştıysa) kilidi açmamıza gerek yok
-        if (_matchedPairs < totalPairs)
+        if (_matchedPairs >= totalPairs)
         {
-            _isProcessing = false;
+            WinGame();
         }
     }
+    else
+    {
+        // ❌ EŞLEŞME YOK
+        yield return new WaitForSeconds(0.5f);
+        
+        // 🔥 CEZA SİSTEMİ: Seviye 10'dan sonra (Index 10 ve sonrası) 3 saniye eksilt
+        if (_currentLevelIndex >= 10) 
+        {
+            _remainingTime -= 3f;
+            if (_remainingTime < 0) _remainingTime = 0;
+            
+            // Görsel geri bildirim: Süre metnini anlık kırmızı yap
+            StartCoroutine(FlashTimerRed());
+        }
+
+        _firstSelected.HideCard();
+        _secondSelected.HideCard();
+        AudioManager.Instance.PlaySFX(failSound);
+    }
+
+    _firstSelected = null;
+    _secondSelected = null;
+    if (_matchedPairs < totalPairs) _isProcessing = false;
+}
 
     public void WinGame()
     {
@@ -235,6 +238,11 @@ public class GameManager : MonoBehaviour
             if (idList[i] < cardIcons.Count)
                 cardScript.SetupCard(idList[i], cardIcons[idList[i]]);
             allCards.Add(cardScript);
+        }
+
+        if (_currentLevelIndex == 10)
+        {
+            StartCoroutine(ShowLevelWarning("DİKKAT: Artık yanlış eşleşmeler 3 saniye götürür!"));
         }
     
         // 🚀 Tek bir coroutine başlatıyoruz
@@ -442,6 +450,22 @@ public class GameManager : MonoBehaviour
     public bool IsSystemBusy()
     {
         return _isProcessing;
+    }
+
+    // Sürenin azaldığını belli eden küçük bir efekt
+    private IEnumerator FlashTimerRed()
+    {
+        timerText.color = Color.red;
+        yield return new WaitForSeconds(0.3f);
+        timerText.color = Color.white;
+    }
+
+    private IEnumerator ShowLevelWarning(string message)
+    {
+        infoText.text = message;
+        infoText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(3f); // 3 saniye ekranda kalsın
+        infoText.gameObject.SetActive(false);
     }
 
     StartCoroutine(ShowCardsAtStart());
