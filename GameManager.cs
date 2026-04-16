@@ -276,6 +276,16 @@ public class GameManager : MonoBehaviour
     
         if (_currentLevelIndex < levels.Count)
         {
+            // Eğer seviye listesinin sonuna geldiysek
+            if (_currentLevelIndex >= levels.Count)
+            {
+                _currentLevelIndex = 0; // Başa dön
+                // İsteğe bağlı: Her döngüde süreyi biraz azaltabilirsin (Zorluk artışı)
+            }
+        
+            currentLevel = levels[_currentLevelIndex];
+            GenerateLevel();
+    
             // Bir sonraki leveli ayarla
             currentLevel = levels[_currentLevelIndex];
             
