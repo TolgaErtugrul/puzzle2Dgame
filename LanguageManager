@@ -1,0 +1,32 @@
+public enum Language { TR, EN }
+
+public static class LanguageManager
+{
+    public static Language currentLanguage = Language.TR; // Varsayılan
+
+    public static string GetText(string key)
+    {
+        if (currentLanguage == Language.TR)
+        {
+            switch (key)
+            {
+                case "time": return "Süre: ";
+                case "moves": return "Hamle: ";
+                case "next": return "Sonraki Bölüm";
+                case "warning": return "Hatalı basış -3 saniye!";
+                default: return "";
+            }
+        }
+        else // EN
+        {
+            switch (key)
+            {
+                case "time": return "Time: ";
+                case "moves": return "Moves: ";
+                case "next": return "Next Level";
+                case "warning": return "Wrong move -3 sec!";
+                default: return "";
+            }
+        }
+    }
+}
