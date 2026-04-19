@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour
     private int _matchedPairs = 0;
     private bool _isTimerRunning = false;
     private float _remainingTime;
+    private int _comboCount = 0;
 
     public GameObject matchEffectPrefab;
 
@@ -106,53 +107,64 @@ public class GameManager : MonoBehaviour
     
     void UpdateUI()
     {
-        moveText.text = "Hamle: " + _moveCount;
-        // En iyi skoru göster (Varsayılan 0 ise hiç oynanmamış demektir)
-        int best = PlayerPrefs.GetInt("BestScore_" + currentLevel.name, 0);
-        bestMoveText.text = "En İyi: " + (best == 0 ? "-" : best.ToString());
+        if (moveText != null)
+            moveText.text = LanguageManager.GetText("moves") + _moveCount;
+    
+        if (timerText != null)
+            timerText.text = LanguageManager.GetText("time") + Mathf.CeilToInt(_remainingTime);
     }
 
-    rivate IEnumerator CheckMatchRoutine()
-{
-    yield return new WaitForSeconds(0.4f);
-
-    if (_firstSelected.GetID() == _secondSelected.GetID())
+    private IEnumerator CheckMatchRoutine()
     {
-        // ✅ EŞLEŞME OLDU (Aynı kalıyor)
-        _firstSelected.SetMatched();
-        _secondSelected.SetMatched();
-        _matchedPairs++;
-        AudioManager.Instance.PlaySFX(matchSound);
+        yield return new WaitForSeconds(0.4f);
 
-        if (_matchedPairs >= totalPairs)
+        if (_firstSelected.GetID() == _secondSelected.GetID())
         {
-            WinGame();
-        }
-    }
-    else
-    {
-        // ❌ EŞLEŞME YOK
-        yield return new WaitForSeconds(0.5f);
-        
-        // 🔥 CEZA SİSTEMİ: Seviye 10'dan sonra (Index 10 ve sonrası) 3 saniye eksilt
-        if (_currentLevelIndex >= 10) 
-        {
-            _remainingTime -= 3f;
-            if (_remainingTime < 0) _remainingTime = 0;
+            // ✅ EŞLEŞME OLDU
+            _comboCount++; // Kombo artar (x1, x2, x3...)
+    
+            if (_comboCount >= 2) // x2 ve sonrası için ödül ver
+            {
+                float bonus = _comboCount; // x2 ise 2sn, x3 ise 3sn...
+                _remainingTime += bonus;
+                StartCoroutine(ShowLevelWarning("COMBO x" + _comboCount + "! +" + bonus + "sn"));
+            }
             
-            // Görsel geri bildirim: Süre metnini anlık kırmızı yap
-            StartCoroutine(FlashTimerRed());
+            _firstSelected.SetMatched();
+            _secondSelected.SetMatched();
+            _matchedPairs++;
+            AudioManager.Instance.PlaySFX(matchSound);
+
+            if (_matchedPairs >= totalPairs)
+            {
+                WinGame();
+            }
         }
-
-        _firstSelected.HideCard();
-        _secondSelected.HideCard();
-        AudioManager.Instance.PlaySFX(failSound);
+        else
+        {
+            // ❌ EŞLEŞME YOK
+            _comboCount = 0; // Hata yapınca kombo sıfırlanır
+            yield return new WaitForSeconds(0.5f);
+            
+            // 🔥 CEZA SİSTEMİ: Seviye 10'dan sonra (Index 10 ve sonrası) 3 saniye eksilt
+            if (_currentLevelIndex >= 10) 
+            {
+                _remainingTime -= 3f;
+                if (_remainingTime < 0) _remainingTime = 0;
+                
+                // Görsel geri bildirim: Süre metnini anlık kırmızı yap
+                StartCoroutine(FlashTimerRed());
+            }
+    
+            _firstSelected.HideCard();
+            _secondSelected.HideCard();
+            AudioManager.Instance.PlaySFX(failSound);
+        }
+    
+        _firstSelected = null;
+        _secondSelected = null;
+        if (_matchedPairs < totalPairs) _isProcessing = false;
     }
-
-    _firstSelected = null;
-    _secondSelected = null;
-    if (_matchedPairs < totalPairs) _isProcessing = false;
-}
 
     public void WinGame()
     {
@@ -272,41 +284,20 @@ public class GameManager : MonoBehaviour
 
     public void LoadNextLevel()
     {
-        _currentLevelIndex++;
-    
-        if (_currentLevelIndex < levels.Count)
+        if (_currentLevelIndex < levels.Count - 1)
         {
-            // Eğer seviye listesinin sonuna geldiysek
-            if (_currentLevelIndex >= levels.Count)
-            {
-                _currentLevelIndex = 0; // Başa dön
-                // İsteğe bağlı: Her döngüde süreyi biraz azaltabilirsin (Zorluk artışı)
-            }
-        
+            _currentLevelIndex++;
             currentLevel = levels[_currentLevelIndex];
-            GenerateLevel();
-    
-            // Bir sonraki leveli ayarla
-            currentLevel = levels[_currentLevelIndex];
-            
-            // UI'ları ve sayaçları sıfırla
-            _matchedPairs = 0;
-            _moveCount = 0;
-            UpdateUI();
-            
-            // WinPanel'i kapat
-            winPanelGroup.alpha = 0;
-            winPanelGroup.gameObject.SetActive(false);
-    
-            // Yeni gridi oluştur
-            GenerateLevel();
-            StartCoroutine(StartGameSequence());
         }
         else
         {
-            Debug.Log("Tüm oyun bitti! Tebrikler.");
-            // Burada bir "Tebrikler, tüm bölümleri bitirdin" paneli açılabilir.
+            // 18. seviye bittiyse: Seviyeyi başa sarma, ama süreyi %20 azalt!
+            Debug.Log("Master Mode: Aynı seviye, daha az süre!");
+            currentLevel = levels[_currentLevelIndex]; // Son seviyede kal
+            currentLevel.timeLimit *= 0.8f; // Süreyi her seferinde daralt (Dikkat: ScriptableObject'i kalıcı bozabilir, geçici değişkene ata)
         }
+        
+        GenerateLevel();
     }
 
     public void PlaySound(AudioClip clip)
@@ -476,6 +467,18 @@ public class GameManager : MonoBehaviour
         infoText.gameObject.SetActive(true);
         yield return new WaitForSeconds(3f); // 3 saniye ekranda kalsın
         infoText.gameObject.SetActive(false);
+    }
+
+    public void ChangeLanguage()
+    {
+        // Dili değiştir
+        LanguageManager.currentLanguage = (LanguageManager.currentLanguage == Language.TR) ? Language.EN : Language.TR;
+        
+        // 🔥 KRİTİK: Değişikliği ekrana hemen yansıt!
+        UpdateUI();
+        
+        // Eğer varsa "Sonraki Bölüm" butonunun yazısını da burada güncelleyebilirsin
+        Debug.Log("Dil değişti: " + LanguageManager.currentLanguage);
     }
 
     StartCoroutine(ShowCardsAtStart());
