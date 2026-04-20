@@ -41,6 +41,11 @@ public class GameManager : MonoBehaviour
 
     [Header("New Rules UI")]
     public TextMeshProUGUI infoText;
+
+    [Header("Language UI")]
+    public Image languageButtonImage; // Butonun Image bileşeni
+    public Sprite trFlag; // TR Bayrağı Sprite'ı
+    public Sprite enFlag; // EN Bayrağı Sprite'ı
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -65,12 +70,11 @@ public class GameManager : MonoBehaviour
         {
             _remainingTime -= Time.deltaTime;
     
-            // Süreyi ekranda formatlı göster (Örn: 00:15)
             if (timerText != null)
             {
-                timerText.text = "Süre: " + Mathf.CeilToInt(_remainingTime).ToString();
+                // 🔥 BURASI KRİTİK: "Süre: " yerine LanguageManager kullanmalıyız
+                timerText.text = LanguageManager.GetText("time") + Mathf.CeilToInt(_remainingTime).ToString();
                 
-                // Süre 5 saniyeden az kalınca yazıyı kırmızı yapıp oyuncuyu uyarabilirsin
                 if (_remainingTime < 5f) timerText.color = Color.red;
                 else timerText.color = Color.white;
             }
@@ -209,6 +213,8 @@ public class GameManager : MonoBehaviour
 
     public void GenerateLevel()
     {
+        _comboCount = 0; // Seviye başladığında komboyu sıfırla
+        
         if (currentLevel == null) return;
     
         // Grid ayarları
@@ -471,14 +477,62 @@ public class GameManager : MonoBehaviour
 
     public void ChangeLanguage()
     {
-        // Dili değiştir
         LanguageManager.currentLanguage = (LanguageManager.currentLanguage == Language.TR) ? Language.EN : Language.TR;
         
-        // 🔥 KRİTİK: Değişikliği ekrana hemen yansıt!
+        // Bayrağı değiştir
+        if (languageButtonImage != null)
+        {
+            languageButtonImage.sprite = (LanguageManager.currentLanguage == Language.TR) ? trFlag : enFlag;
+        }
+    
         UpdateUI();
-        
-        // Eğer varsa "Sonraki Bölüm" butonunun yazısını da burada güncelleyebilirsin
-        Debug.Log("Dil değişti: " + LanguageManager.currentLanguage);
+    }
+
+    public void OpenSettings()
+    {
+        _timerActive = false; // Süreyi durdur
+    }
+
+    public void CloseSettings()
+    {
+        // Eğer oyun bitmediyse ve kart gösterimi yapılmıyorsa süreyi devam ettir
+        if (_remainingTime > 0 && !_isProcessing) 
+        {
+            _timerActive = true; 
+        }
+    }
+
+    private IEnumerator ComboPopupEffect(int combo)
+    {
+        infoText.text = "COMBO x" + combo;
+        infoText.color = Color.yellow; // Kombo sarı parlasın
+        infoText.gameObject.SetActive(true);
+    
+        // Büyüme Efekti
+        float elapsed = 0f;
+        float duration = 0.2f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float scale = Mathf.Lerp(1f, 1.5f, elapsed / duration);
+            infoText.transform.localScale = Vector3.one * scale;
+            yield return null;
+        }
+    
+        yield return new WaitForSeconds(0.3f); // Biraz bekle
+    
+        // Küçülüp Kaybolma
+        elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float scale = Mathf.Lerp(1.5f, 0f, elapsed / duration);
+            infoText.transform.localScale = Vector3.one * scale;
+            yield return null;
+        }
+    
+        infoText.gameObject.SetActive(false);
+        infoText.transform.localScale = Vector3.one; // Scale'i sıfırla
     }
 
     StartCoroutine(ShowCardsAtStart());
