@@ -13,7 +13,11 @@ public static class LanguageManager
                 case "time": return "Süre: ";
                 case "moves": return "Hamle: ";
                 case "next": return "Sonraki Bölüm";
-                case "warning": return "Hatalı basış -3 saniye!";
+                case "tryAgain": return "Tekrar Dene";
+                case "plus30": return "+30 Saniye";
+                case "settingsTitle": return "AYARLAR";
+                case "langLabel": return "DİL: ";
+                case "warning": return "Hatalı seçim! -3s";
                 default: return "";
             }
         }
@@ -24,7 +28,11 @@ public static class LanguageManager
                 case "time": return "Time: ";
                 case "moves": return "Moves: ";
                 case "next": return "Next Level";
-                case "warning": return "Wrong move -3 sec!";
+                case "tryAgain": return "Try Again";
+                case "plus30": return "+30 Seconds";
+                case "settingsTitle": return "SETTINGS";
+                case "langLabel": return "LANG: ";
+                case "warning": return "Wrong move! -3s";
                 default: return "";
             }
         }
