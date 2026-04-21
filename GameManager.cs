@@ -46,6 +46,12 @@ public class GameManager : MonoBehaviour
     public Image languageButtonImage; // Butonun Image bileşeni
     public Sprite trFlag; // TR Bayrağı Sprite'ı
     public Sprite enFlag; // EN Bayrağı Sprite'ı
+
+    [Header("Icon Collections")]
+    public List<Sprite> fruitIcons;
+    public List<Sprite> animalIcons;
+    public List<Sprite> emojiIcons;
+    public List<Sprite> techIcons;
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -239,23 +245,13 @@ public class GameManager : MonoBehaviour
         int totalCards = currentLevel.rowCount * currentLevel.columnCount;
         totalPairs = totalCards / 2;
     
-        List<int> idList = new List<int>();
-        for (int i = 0; i < totalPairs; i++) { idList.Add(i); idList.Add(i); }
-        for (int i = 0; i < idList.Count; i++)
+        List<Sprite> GetIconsForCurrentLevel()
         {
-            int temp = idList[i];
-            int randomIndex = Random.Range(i, idList.Count);
-            idList[i] = idList[randomIndex];
-            idList[randomIndex] = temp;
-        }
-    
-        for (int i = 0; i < totalCards; i++)
-        {
-            GameObject newCard = Instantiate(cardPrefab, cardGridParent);
-            Card cardScript = newCard.GetComponent<Card>();
-            if (idList[i] < cardIcons.Count)
-                cardScript.SetupCard(idList[i], cardIcons[idList[i]]);
-            allCards.Add(cardScript);
+            if (_currentLevelIndex < 10) return fruitIcons;
+            if (_currentLevelIndex < 20) return animalIcons;
+            if (_currentLevelIndex < 30) return emojiIcons;
+            if (_currentLevelIndex < 40) return techIcons;
+            return emojiIcons; // 40+ için
         }
 
         if (_currentLevelIndex == 10)
