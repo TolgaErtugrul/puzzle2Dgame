@@ -2,39 +2,31 @@ public enum Language { TR, EN }
 
 public static class LanguageManager
 {
-    public static Language currentLanguage = Language.TR; // Varsayılan
+    public static Language currentLanguage = Language.TR;
 
     public static string GetText(string key)
     {
-        if (currentLanguage == Language.TR)
+        bool isTR = currentLanguage == Language.TR;
+
+        switch (key)
         {
-            switch (key)
-            {
-                case "time": return "Süre: ";
-                case "moves": return "Hamle: ";
-                case "next": return "Sonraki Bölüm";
-                case "tryAgain": return "Tekrar Dene";
-                case "plus30": return "+30 Saniye";
-                case "settingsTitle": return "AYARLAR";
-                case "langLabel": return "DİL: ";
-                case "warning": return "Hatalı seçim! -3s";
-                default: return "";
-            }
-        }
-        else // EN
-        {
-            switch (key)
-            {
-                case "time": return "Time: ";
-                case "moves": return "Moves: ";
-                case "next": return "Next Level";
-                case "tryAgain": return "Try Again";
-                case "plus30": return "+30 Seconds";
-                case "settingsTitle": return "SETTINGS";
-                case "langLabel": return "LANG: ";
-                case "warning": return "Wrong move! -3s";
-                default: return "";
-            }
+            case "time": return isTR ? "Süre: " : "Time: ";
+            case "moves": return isTR ? "Hamle: " : "Moves: ";
+            case "next": return isTR ? "Sonraki Bölüm" : "Next Level";
+            case "tryAgain": return isTR ? "Tekrar Dene" : "Try Again";
+            case "plus30": return isTR ? "+30 Saniye" : "+30 Seconds";
+            case "settingsTitle": return isTR ? "AYARLAR" : "SETTINGS";
+            case "langLabel": return isTR ? "DİL: " : "LANG: ";
+            case "warning": return isTR ? "Hatalı seçim! -2s" : "Wrong move! -2s";
+            case "theme_fruit": return isTR ? "YENİ TEMA: MEYVELER" : "NEW THEME: FRUITS";
+            case "theme_animal": return isTR ? "YENİ TEMA: HAYVANLAR" : "NEW THEME: ANIMALS";
+            case "theme_emoji": return isTR ? "YENİ TEMA: EMOJİLER" : "NEW THEME: EMOJIS";
+            case "theme_letter": return isTR ? "YENİ TEMA: HARFLER" : "NEW THEME: LETTERS";
+            case "theme_food": return isTR ? "YENİ TEMA: YEMEKLER" : "NEW THEME: FOODS";
+            case "bonus_match": return isTR ? "ÖDÜLLÜ EŞLEŞME! +5sn" : "BONUS MATCH! +5s";
+            case "bomb_hit": return isTR ? "BOMBA! KARTLAR KAPANIYOR!" : "BOMB! CLOSING CARDS!";
+            case "shuffling": return isTR ? "KARTLAR KARIŞIYOR!" : "SHUFFLING CARDS!";
+            default: return "";
         }
     }
 }
