@@ -138,7 +138,8 @@ public class GameManager : MonoBehaviour
         {
             // ✅ EŞLEŞME OLDU
             int matchedID = _firstSelected.GetID();
-
+            _matchedPairs++; // Önce sayacı artır ki son çift kontrolü yapabilelim
+        
             if (matchedID == _bonusPairID)
             {
                 _remainingTime += 5f;
@@ -146,9 +147,18 @@ public class GameManager : MonoBehaviour
             }
             else if (matchedID == _bombPairID)
             {
-                _remainingTime -= 10f; // Bomba eşleşirse ağır ceza!
-                StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bomb_hit")));
+                // EĞER SON ÇİFT DEĞİLSE bombayı patlat
+                if (_matchedPairs < totalPairs)
+                {
+                    StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bomb_hit")));
+                    // Eşleşmemiş tüm kartları kapat
+                    foreach (var card in allCards)
+                    {
+                        if (!card._isMatched) card.HideCard();
+                    }
+                }
             }
+            
             _comboCount++; // Kombo artar (x1, x2, x3...)
     
             if (_comboCount >= 2) // x2 ve sonrası için ödül ver
@@ -163,10 +173,7 @@ public class GameManager : MonoBehaviour
             _matchedPairs++;
             AudioManager.Instance.PlaySFX(matchSound);
 
-            if (_matchedPairs >= totalPairs)
-            {
-                WinGame();
-            }
+            if (_matchedPairs >= totalPairs) WinGame();
         }
         else
         {
@@ -239,16 +246,20 @@ public class GameManager : MonoBehaviour
 
     public void GenerateLevel()
     {
-        _comboCount = 0;
+        _comboCount = 0; 
         if (currentLevel == null) return;
     
-        // 1. Tema Geçiş Yazısı (Her 10 seviyede bir)
+        // 1. Tema Geçiş Yazısı (Sadece geçiş seviyelerinde)
         if (_currentLevelIndex % 10 == 0)
         {
-            string themeKey = _currentLevelIndex == 0 ? "theme_fruit" : 
-                              _currentLevelIndex == 10 ? "theme_animal" :
-                              _currentLevelIndex == 20 ? "theme_emoji" : "theme_letter";
-            StartCoroutine(ShowLevelWarning(LanguageManager.GetText(themeKey)));
+            string themeKey = "";
+            if (_currentLevelIndex == 0) themeKey = "theme_fruit";
+            else if (_currentLevelIndex == 10) themeKey = "theme_animal";
+            else if (_currentLevelIndex == 20) themeKey = "theme_emoji";
+            else if (_currentLevelIndex == 30) themeKey = "theme_letter";
+            else if (_currentLevelIndex == 40) themeKey = "theme_food";
+    
+            if(themeKey != "") StartCoroutine(ShowLevelWarning(LanguageManager.GetText(themeKey)));
         }
     
         // Grid ayarları
@@ -309,7 +320,7 @@ public class GameManager : MonoBehaviour
         StopAllCoroutines(); 
     
         // Seviye 10 (Index 9) uyarısı
-        if (_currentLevelIndex == 9)
+        if (_currentLevelIndex == 10)
         {
             StartCoroutine(ShowLevelWarning(LanguageManager.GetText("warning_intro")));
         }
