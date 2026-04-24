@@ -52,6 +52,12 @@ public class GameManager : MonoBehaviour
     public List<Sprite> animalIcons;
     public List<Sprite> emojiIcons;
     public List<Sprite> techIcons;
+
+    [Header("Special Sprites")]
+    public Sprite bonusSprite; // Altın ikon veya +5 yazısı
+    public Sprite bombSprite;  // Bomba ikonu
+    private int _bonusPairID = -1;
+    private int _bombPairID = -2;
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -131,6 +137,18 @@ public class GameManager : MonoBehaviour
         if (_firstSelected.GetID() == _secondSelected.GetID())
         {
             // ✅ EŞLEŞME OLDU
+            int matchedID = _firstSelected.GetID();
+
+            if (matchedID == _bonusPairID)
+            {
+                _remainingTime += 5f;
+                StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bonus_match")));
+            }
+            else if (matchedID == _bombPairID)
+            {
+                _remainingTime -= 10f; // Bomba eşleşirse ağır ceza!
+                StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bomb_hit")));
+            }
             _comboCount++; // Kombo artar (x1, x2, x3...)
     
             if (_comboCount >= 2) // x2 ve sonrası için ödül ver
@@ -174,6 +192,8 @@ public class GameManager : MonoBehaviour
         _firstSelected = null;
         _secondSelected = null;
         if (_matchedPairs < totalPairs) _isProcessing = false;
+
+        CheckForShuffle();
     }
 
     public void WinGame()
@@ -219,12 +239,17 @@ public class GameManager : MonoBehaviour
 
     public void GenerateLevel()
     {
-        _comboCount = 0; 
-    
+        _comboCount = 0;
         if (currentLevel == null) return;
     
-        // 1. Önce hangi ikon listesini kullanacağımızı belirliyoruz
-        List<Sprite> activeIcons = GetIconsForCurrentLevel();
+        // 1. Tema Geçiş Yazısı (Her 10 seviyede bir)
+        if (_currentLevelIndex % 10 == 0)
+        {
+            string themeKey = _currentLevelIndex == 0 ? "theme_fruit" : 
+                              _currentLevelIndex == 10 ? "theme_animal" :
+                              _currentLevelIndex == 20 ? "theme_emoji" : "theme_letter";
+            StartCoroutine(ShowLevelWarning(LanguageManager.GetText(themeKey)));
+        }
     
         // Grid ayarları
         GridLayoutGroup gridLayout = cardGridParent.GetComponent<GridLayoutGroup>();
@@ -246,7 +271,11 @@ public class GameManager : MonoBehaviour
     
         int totalCards = currentLevel.rowCount * currentLevel.columnCount;
         totalPairs = totalCards / 2;
-    
+
+        // 2.A. Özel Kart Atamaları
+        _bonusPairID = (_currentLevelIndex >= 20) ? 0 : -1; // Seviye 20+ ise ilk çift bonustur
+        _bombPairID = (_currentLevelIndex >= 40) ? 1 : -2;  // Seviye 40+ ise ikinci çift bombadır
+        
         // ID Listesi oluşturma ve karıştırma
         List<int> idList = new List<int>();
         for (int i = 0; i < totalPairs; i++) { idList.Add(i); idList.Add(i); }
@@ -264,10 +293,15 @@ public class GameManager : MonoBehaviour
             GameObject newCard = Instantiate(cardPrefab, cardGridParent);
             Card cardScript = newCard.GetComponent<Card>();
             
-            // Hata önleme: Eğer ID, ikon listesinin boyutundan büyükse hata vermemesi için
-            int iconIndex = idList[i] % activeIcons.Count; 
-            
-            cardScript.SetupCard(idList[i], activeIcons[iconIndex]);
+            int currentID = idList[i];
+            Sprite iconToUse;
+    
+            // Özel İkon Kontrolü
+            if (currentID == _bonusPairID) iconToUse = bonusSprite;
+            else if (currentID == _bombPairID) iconToUse = bombSprite;
+            else iconToUse = activeIcons[currentID % activeIcons.Count];
+    
+            cardScript.SetupCard(currentID, iconToUse);
             allCards.Add(cardScript);
         }
     
@@ -560,5 +594,31 @@ public class GameManager : MonoBehaviour
         infoText.transform.localScale = Vector3.one; // Scale'i sıfırla
     }
 
+    void CheckForShuffle()
+    {
+        if (_currentLevelIndex >= 30 && _moveCount > 0 && _moveCount % 10 == 0)
+        {
+            StartCoroutine(ShuffleRoutine());
+        }
+    }
+
+    private IEnumerator ShuffleRoutine()
+    {
+        _isProcessing = true; // Karışırken kimse basamasın
+        StartCoroutine(ShowLevelWarning(LanguageManager.GetText("shuffling")));
+        yield return new WaitForSeconds(1f);
+    
+        // Sadece henüz eşleşmemiş kartları topla
+        List<Card> remainingCards = allCards.FindAll(c => !c.IsMatched);
+    
+        foreach (Card card in remainingCards)
+        {
+            // Unity Hierarchy'deki yerini rastgele değiştirerek fiziksel yerini değiştiriyoruz
+            card.transform.SetSiblingIndex(Random.Range(0, cardGridParent.childCount));
+        }
+    
+        yield return new WaitForSeconds(0.5f);
+        _isProcessing = false;
+    }
     StartCoroutine(ShowCardsAtStart());
 }
