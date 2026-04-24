@@ -219,9 +219,12 @@ public class GameManager : MonoBehaviour
 
     public void GenerateLevel()
     {
-        _comboCount = 0; // Seviye başladığında komboyu sıfırla
-        
+        _comboCount = 0; 
+    
         if (currentLevel == null) return;
+    
+        // 1. Önce hangi ikon listesini kullanacağımızı belirliyoruz
+        List<Sprite> activeIcons = GetIconsForCurrentLevel();
     
         // Grid ayarları
         GridLayoutGroup gridLayout = cardGridParent.GetComponent<GridLayoutGroup>();
@@ -231,37 +234,63 @@ public class GameManager : MonoBehaviour
             gridLayout.constraintCount = currentLevel.columnCount;
         }
     
-        // ⚠️ DÜZELTME: Süreyi burada BAŞLATMIYORUZ, sadece tanımlıyoruz.
         _remainingTime = currentLevel.timeLimit; 
-        _timerActive = false; // Henüz kapalı
+        _timerActive = false; 
         _matchedPairs = 0;
         _moveCount = 0;
         UpdateUI();
     
-        // Temizlik ve Kart Oluşturma
+        // Temizlik
         foreach (Transform child in cardGridParent) { Destroy(child.gameObject); }
         allCards.Clear();
     
         int totalCards = currentLevel.rowCount * currentLevel.columnCount;
         totalPairs = totalCards / 2;
     
-        List<Sprite> GetIconsForCurrentLevel()
+        // ID Listesi oluşturma ve karıştırma
+        List<int> idList = new List<int>();
+        for (int i = 0; i < totalPairs; i++) { idList.Add(i); idList.Add(i); }
+        for (int i = 0; i < idList.Count; i++)
         {
-            if (_currentLevelIndex < 10) return fruitIcons;
-            if (_currentLevelIndex < 20) return animalIcons;
-            if (_currentLevelIndex < 30) return emojiIcons;
-            if (_currentLevelIndex < 40) return techIcons;
-            return emojiIcons; // 40+ için
-        }
-
-        if (_currentLevelIndex == 10)
-        {
-            StartCoroutine(ShowLevelWarning("DİKKAT: Artık yanlış eşleşmeler 3 saniye götürür!"));
+            int temp = idList[i];
+            int randomIndex = Random.Range(i, idList.Count);
+            idList[i] = idList[randomIndex];
+            idList[randomIndex] = temp;
         }
     
-        // 🚀 Tek bir coroutine başlatıyoruz
+        // 2. Kartları oluştururken seçtiğimiz 'activeIcons' listesini kullanıyoruz
+        for (int i = 0; i < totalCards; i++)
+        {
+            GameObject newCard = Instantiate(cardPrefab, cardGridParent);
+            Card cardScript = newCard.GetComponent<Card>();
+            
+            // Hata önleme: Eğer ID, ikon listesinin boyutundan büyükse hata vermemesi için
+            int iconIndex = idList[i] % activeIcons.Count; 
+            
+            cardScript.SetupCard(idList[i], activeIcons[iconIndex]);
+            allCards.Add(cardScript);
+        }
+    
+        // 3. Coroutine yönetimi (Önce durdur, sonra başlat)
         StopAllCoroutines(); 
+    
+        // Seviye 10 (Index 9) uyarısı
+        if (_currentLevelIndex == 9)
+        {
+            StartCoroutine(ShowLevelWarning(LanguageManager.GetText("warning_intro")));
+        }
+    
         StartCoroutine(ShowCardsAtStart());
+    }
+    
+    // Yardımcı Fonksiyon: Seviyeye göre ikon listesi döndürür
+    List<Sprite> GetIconsForCurrentLevel()
+    {
+        if (_currentLevelIndex < 10) return fruitIcons;
+        if (_currentLevelIndex < 20) return animalIcons;
+        if (_currentLevelIndex < 30) return emojiIcons;
+        if (_currentLevelIndex < 40) return letterIcons; // Alfabe/Sayı listesi
+        return emojiIcons; // 40 ve sonrası için
     }
 
     public IEnumerator StartGameSequence()
