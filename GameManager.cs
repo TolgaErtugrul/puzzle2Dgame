@@ -133,13 +133,14 @@ public class GameManager : MonoBehaviour
     private IEnumerator CheckMatchRoutine()
     {
         yield return new WaitForSeconds(0.4f);
-
+    
         if (_firstSelected.GetID() == _secondSelected.GetID())
         {
-            // ✅ EŞLEŞME OLDU
             int matchedID = _firstSelected.GetID();
-            _matchedPairs++; // Önce sayacı artır ki son çift kontrolü yapabilelim
-        
+            
+            // ✅ DÜZELTME: Sadece burada 1 kez artırıyoruz
+            _matchedPairs++; 
+    
             if (matchedID == _bonusPairID)
             {
                 _remainingTime += 5f;
@@ -147,60 +148,97 @@ public class GameManager : MonoBehaviour
             }
             else if (matchedID == _bombPairID)
             {
-                // EĞER SON ÇİFT DEĞİLSE bombayı patlat
+                // Eğer oyun henüz bitmediyse bombayı patlat
                 if (_matchedPairs < totalPairs)
                 {
                     StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bomb_hit")));
-                    // Eşleşmemiş tüm kartları kapat
                     foreach (var card in allCards)
                     {
                         if (!card._isMatched) card.HideCard();
                     }
                 }
             }
-            
-            _comboCount++; // Kombo artar (x1, x2, x3...)
     
-            if (_comboCount >= 2) // x2 ve sonrası için ödül ver
-            {
-                float bonus = _comboCount; // x2 ise 2sn, x3 ise 3sn...
-                _remainingTime += bonus;
-                StartCoroutine(ShowLevelWarning("COMBO x" + _comboCount + "! +" + bonus + "sn"));
-            }
-            
+            // ✅ EŞLEŞME GÖRSEL İŞLEMLERİ
             _firstSelected.SetMatched();
             _secondSelected.SetMatched();
-            _matchedPairs++;
+            _comboCount++;
             AudioManager.Instance.PlaySFX(matchSound);
-
-            if (_matchedPairs >= totalPairs) WinGame();
+    
+            // Kombo işlemleri...
+            if (_comboCount >= 2)
+            {
+                float bonus = _comboCount;
+                _remainingTime += bonus;
+                StartCoroutine(ShowLevelWarning("COMBO x" + _comboCount + "! +" + bonus + "sn"));
+                StartCoroutine(ComboPopupEffect(_comboCount));
+            }
+    
+            // Efekt oluşturma...
+            GameObject effect1 = Instantiate(matchEffectPrefab, _firstSelected.transform.position, Quaternion.identity);
+            GameObject effect2 = Instantiate(matchEffectPrefab, _secondSelected.transform.position, Quaternion.identity);
+            Destroy(effect1, 2.0f);
+            Destroy(effect2, 2.0f);
+    
+            // 🔥 KRİTİK KONTROL: SON ÇİFT BOMBA MI?
+            CheckForAutoWin();
         }
         else
         {
-            // ❌ EŞLEŞME YOK
-            _comboCount = 0; // Hata yapınca kombo sıfırlanır
+            // ❌ EŞLEŞME YOK BLOĞU (Aynen kalsın)
             yield return new WaitForSeconds(0.5f);
-            
-            // 🔥 CEZA SİSTEMİ: Seviye 10'dan sonra (Index 10 ve sonrası) 3 saniye eksilt
             if (_currentLevelIndex >= 10) 
             {
-                _remainingTime -= 3f;
+                _remainingTime -= 2f;
                 if (_remainingTime < 0) _remainingTime = 0;
-                
-                // Görsel geri bildirim: Süre metnini anlık kırmızı yap
                 StartCoroutine(FlashTimerRed());
             }
-    
             _firstSelected.HideCard();
             _secondSelected.HideCard();
             AudioManager.Instance.PlaySFX(failSound);
+            _comboCount = 0;
         }
     
         _firstSelected = null;
         _secondSelected = null;
         if (_matchedPairs < totalPairs) _isProcessing = false;
-
-        CheckForShuffle();
+    }
+    
+    // Yeni Yardımcı Fonksiyon: Bomba son çiftse oyunu bitirir
+    private void CheckForAutoWin()
+    {
+        if (_matchedPairs >= totalPairs)
+        {
+            WinGame();
+            return;
+        }
+    
+        // Eğer sadece 1 çift kaldıysa ve o çift Bombaysa...
+        if (_matchedPairs == totalPairs - 1 && _bombPairID != -2)
+        {
+            // Kalan kartlar arasında bombayı kontrol et
+            bool bombIsLast = false;
+            foreach (var card in allCards)
+            {
+                if (!card._isMatched && card.GetID() == _bombPairID)
+                {
+                    bombIsLast = true;
+                    break;
+                }
+            }
+    
+            if (bombIsLast)
+            {
+                Debug.Log("Son kalan çift bomba, oyuncu kazandı sayılıyor!");
+                _matchedPairs++; // Bombayı da eşleşmiş say
+                // Kalan kartları görsel olarak eşleşmiş yap (isteğe bağlı)
+                foreach (var card in allCards)
+                {
+                    if (!card._isMatched) card.SetMatched();
+                }
+                WinGame();
+            }
+        }
     }
 
     public void WinGame()
