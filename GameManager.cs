@@ -140,6 +140,8 @@ public class GameManager : MonoBehaviour
             
             // ✅ DÜZELTME: Sadece burada 1 kez artırıyoruz
             _matchedPairs++; 
+
+            _firstSelected.PlayMatchAnimation();
     
             if (matchedID == _bonusPairID)
             {
