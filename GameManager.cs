@@ -151,6 +151,8 @@ public class GameManager : MonoBehaviour
                 // Eğer oyun henüz bitmediyse bombayı patlat
                 if (_matchedPairs < totalPairs)
                 {
+                    // Bomba patlayınca ekran daha güçlü sallansın!
+                    CameraShake.Instance.Shake(0.5f, 0.3f);
                     StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bomb_hit")));
                     foreach (var card in allCards)
                     {
@@ -201,6 +203,8 @@ public class GameManager : MonoBehaviour
     
         _firstSelected = null;
         _secondSelected = null;
+        // Yanlış cevapta ekran hafifçe sallansın
+        CameraShake.Instance.Shake(0.2f, 0.1f);
         if (_matchedPairs < totalPairs) _isProcessing = false;
     }
     
