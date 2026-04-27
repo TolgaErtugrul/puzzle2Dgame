@@ -94,17 +94,32 @@ public class Card : MonoBehaviour
         }
     }
     
-    private IEnumerator MatchAnimationRoutine()
+    public void PlayMatchAnimation()
     {
-        yield return new WaitForSeconds(0.3f);
-        // Kartı yavaşça küçülterek yok etme efekti
-        float elapsed = 0f;
-        while (elapsed < 0.3f)
+        StartCoroutine(MatchAnimRoutine());
+    }
+    
+    private IEnumerator MatchAnimRoutine()
+    {
+        float duration = 0.3f;
+        Vector3 targetScale = Vector3.one * 1.2f;
+        Vector3 originalScale = Vector3.one;
+    
+        // Büyüme
+        float elapsed = 0;
+        while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            transform.localScale = Vector3.Lerp(Vector3.one, Vector3.zero, elapsed / 0.3f);
+            transform.localScale = Vector3.Lerp(originalScale, targetScale, elapsed / duration);
             yield return null;
         }
-        gameObject.SetActive(false); // Kartı tamamen gizle
+        // Küçülme
+        elapsed = 0;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            transform.localScale = Vector3.Lerp(targetScale, originalScale, elapsed / duration);
+            yield return null;
+        }
     }
 }
