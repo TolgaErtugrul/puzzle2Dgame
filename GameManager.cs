@@ -133,28 +133,24 @@ public class GameManager : MonoBehaviour
     private IEnumerator CheckMatchRoutine()
     {
         yield return new WaitForSeconds(0.4f);
-    
+
         if (_firstSelected.GetID() == _secondSelected.GetID())
         {
-            int matchedID = _firstSelected.GetID();
-            
-            // ✅ DÜZELTME: Sadece burada 1 kez artırıyoruz
+            int matchedID = _firstSelected.GetID(); // Değişken burada tanımlı
             _matchedPairs++; 
-
-            _firstSelected.PlayMatchAnimation();
     
             if (matchedID == _bonusPairID)
             {
                 _remainingTime += 5f;
                 StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bonus_match")));
             }
-            else if (matchedID == _bombPairID)
+            else if (matchedID == _bombPairID) // 💣 BOMBA BURADA EŞLEŞTİ
             {
-                // Eğer oyun henüz bitmediyse bombayı patlat
+                // BURAYA EKLE: Bomba patlama titremesi
+                CameraShake.Instance.Shake(0.5f, 0.3f); 
+                
                 if (_matchedPairs < totalPairs)
                 {
-                    // Bomba patlayınca ekran daha güçlü sallansın!
-                    CameraShake.Instance.Shake(0.5f, 0.3f);
                     StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bomb_hit")));
                     foreach (var card in allCards)
                     {
@@ -191,12 +187,16 @@ public class GameManager : MonoBehaviour
         {
             // ❌ EŞLEŞME YOK BLOĞU (Aynen kalsın)
             yield return new WaitForSeconds(0.5f);
+        
+            // BURAYA EKLE: Yanlış seçimde hafif titreme
+            CameraShake.Instance.Shake(0.2f, 0.1f); 
+    
             if (_currentLevelIndex >= 10) 
             {
                 _remainingTime -= 2f;
-                if (_remainingTime < 0) _remainingTime = 0;
                 StartCoroutine(FlashTimerRed());
             }
+            
             _firstSelected.HideCard();
             _secondSelected.HideCard();
             AudioManager.Instance.PlaySFX(failSound);
@@ -219,10 +219,8 @@ public class GameManager : MonoBehaviour
             return;
         }
     
-        // Eğer sadece 1 çift kaldıysa ve o çift Bombaysa...
         if (_matchedPairs == totalPairs - 1 && _bombPairID != -2)
         {
-            // Kalan kartlar arasında bombayı kontrol et
             bool bombIsLast = false;
             foreach (var card in allCards)
             {
@@ -235,9 +233,7 @@ public class GameManager : MonoBehaviour
     
             if (bombIsLast)
             {
-                Debug.Log("Son kalan çift bomba, oyuncu kazandı sayılıyor!");
-                _matchedPairs++; // Bombayı da eşleşmiş say
-                // Kalan kartları görsel olarak eşleşmiş yap (isteğe bağlı)
+                _matchedPairs++; 
                 foreach (var card in allCards)
                 {
                     if (!card._isMatched) card.SetMatched();
