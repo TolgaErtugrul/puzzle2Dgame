@@ -4,19 +4,25 @@ using System.Collections;
 public class UIShake : MonoBehaviour
 {
     public static UIShake Instance;
-    private Vector3 _originalPos;
+    private RectTransform _rectTransform;
+    private Vector2 _originalPos;
 
     void Awake()
     {
         Instance = this;
-        _originalPos = transform.localPosition;
+        _rectTransform = GetComponent<RectTransform>();
+        
+        // Eğer CardGrid üzerindeyse orijinal anchored pozisyonunu kaydet
+        if (_rectTransform != null)
+            _originalPos = _rectTransform.anchoredPosition;
     }
 
     public void Shake(float duration, float magnitude)
     {
-        // Önceki sarsıntı bitmemişse pozisyonu sıfırla ki kayma yapmasın
+        if (_rectTransform == null) return;
+
         StopAllCoroutines();
-        transform.localPosition = _originalPos;
+        _rectTransform.anchoredPosition = _originalPos; // Pozisyonu sıfırla
         StartCoroutine(ShakeRoutine(duration, magnitude));
     }
 
@@ -26,16 +32,16 @@ public class UIShake : MonoBehaviour
 
         while (elapsed < duration)
         {
-            // Sarsıntı miktarını Pixel 5 gibi ekranlar için biraz artırdık
-            float x = Random.Range(-1f, 1f) * magnitude * 20f; 
-            float y = Random.Range(-1f, 1f) * magnitude * 20f;
+            // Pixel 5 gibi ekranlar için magnitude değerini 50 ile çarptık
+            float x = Random.Range(-1f, 1f) * magnitude * 50f; 
+            float y = Random.Range(-1f, 1f) * magnitude * 50f;
 
-            transform.localPosition = new Vector3(_originalPos.x + x, _originalPos.y + y, _originalPos.z);
+            _rectTransform.anchoredPosition = _originalPos + new Vector2(x, y);
 
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        transform.localPosition = _originalPos;
+        _rectTransform.anchoredPosition = _originalPos; // Eski yerine döndür
     }
 }
