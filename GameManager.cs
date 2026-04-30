@@ -147,7 +147,7 @@ public class GameManager : MonoBehaviour
             else if (matchedID == _bombPairID) // 💣 BOMBA BURADA EŞLEŞTİ
             {
                 // BURAYA EKLE: Bomba patlama titremesi
-                UIShake.Instance.Shake(0.5f, 0.3f); 
+                UIShake.Instance.Shake(0.5f, 0.8f); 
                 
                 if (_matchedPairs < totalPairs)
                 {
@@ -189,7 +189,7 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         
             // BURAYA EKLE: Yanlış seçimde hafif titreme
-            UIShake.Instance.Shake(0.2f, 0.1f); 
+            UIShake.Instance.Shake(0.2f, 0.4f); 
     
             if (_currentLevelIndex >= 10) 
             {
