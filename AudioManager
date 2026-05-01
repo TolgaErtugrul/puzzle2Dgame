@@ -23,12 +23,26 @@ public class AudioManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    public void PlaySFX(AudioClip clip)
+    public void PlayTokSFX(AudioClip clip, float pitch = 1.0f)
     {
-        if (sfxSource != null && clip != null)
-        {
-            // SFX Source'un ses seviyesi (volume) 0 değilse çal
-            sfxSource.PlayOneShot(clip);
+        if (clip == null) return;
+        
+        // Geçici bir AudioSource oluşturup sesi çalmak için (üst üste binmeler için)
+        audioSource.pitch = pitch; // Sesi pesleştirmek için 1.0'dan küçük değerler (0.8 gibi)
+        audioSource.PlayOneShot(clip);
+    }
+
+    public void TriggerVibration(bool isStrong)
+    {
+        #if UNITY_ANDROID || UNITY_IOS
+        if (isStrong) {
+            // Bomba için daha belirgin (bazı cihazlarda standart titreşim)
+            Handheld.Vibrate(); 
+        } else {
+            // Hatalı seçim için kısa titreşim (Android için özel plugin yoksa 
+            // standart titreşim kullanılır, gerçek cihazda test edilmeli)
+            Handheld.Vibrate();
         }
+        #endif
     }
 }
