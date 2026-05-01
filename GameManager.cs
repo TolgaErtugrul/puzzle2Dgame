@@ -147,7 +147,10 @@ public class GameManager : MonoBehaviour
             else if (matchedID == _bombPairID) // 💣 BOMBA BURADA EŞLEŞTİ
             {
                 // BURAYA EKLE: Bomba patlama titremesi
-                UIShake.Instance.Shake(0.5f, 0.8f); 
+                UIShake.Instance.Shake(0.5f, 0.8f);
+                // Bomba patlaması: Çok daha pes ve tok bir ses (0.6f)
+                AudioManager.Instance.PlayTokSFX(failSound, 0.6f); 
+                TriggerVibration(true); // Güçlü titreşim
                 
                 if (_matchedPairs < totalPairs)
                 {
@@ -199,7 +202,12 @@ public class GameManager : MonoBehaviour
             
             _firstSelected.HideCard();
             _secondSelected.HideCard();
-            AudioManager.Instance.PlaySFX(failSound);
+            
+            // Yanlış cevap: Sesi biraz daha pes (0.8f) çalalım ki "tok" gelsin
+            AudioManager.Instance.PlayTokSFX(failSound, 0.8f); 
+            UIShake.Instance.Shake(0.2f, 0.4f);
+            TriggerVibration(false); // Hafif titreşim
+            
             _comboCount = 0;
         }
     
