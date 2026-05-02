@@ -34,15 +34,11 @@ public class AudioManager : MonoBehaviour
 
     public void TriggerVibration(bool isStrong)
     {
-        #if UNITY_ANDROID || UNITY_IOS
-        if (isStrong) {
-            // Bomba için daha belirgin (bazı cihazlarda standart titreşim)
-            Handheld.Vibrate(); 
-        } else {
-            // Hatalı seçim için kısa titreşim (Android için özel plugin yoksa 
-            // standart titreşim kullanılır, gerçek cihazda test edilmeli)
-            Handheld.Vibrate();
-        }
-        #endif
+        // 🛡️ KONTROL: Eğer ayar kapalıysa hiçbir şey yapma ve çık
+    if (!_isVibrationEnabled) return;
+
+    #if UNITY_ANDROID || UNITY_IOS
+    Handheld.Vibrate();
+    #endif
     }
 }
