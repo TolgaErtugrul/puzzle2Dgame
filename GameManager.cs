@@ -58,6 +58,11 @@ public class GameManager : MonoBehaviour
     public Sprite bombSprite;  // Bomba ikonu
     private int _bonusPairID = -1;
     private int _bombPairID = -2;
+
+    [Header("Settings UI")]
+    public TextMeshProUGUI vibrationLabelText; // Toggle'ın yanındaki yazı
+    public Toggle vibrationToggle; // Toggle'ın kendisi
+    private bool _isVibrationEnabled = true;
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -74,6 +79,15 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+    }
+
+    void Start()
+    {
+        _isVibrationEnabled = PlayerPrefs.GetInt("Vibration", 1) == 1;
+        if(vibrationToggle != null) 
+        vibrationToggle.isOn = _isVibrationEnabled;
+        
+    GenerateLevel();
     }
 
     void Update()
@@ -128,6 +142,9 @@ public class GameManager : MonoBehaviour
     
         if (timerText != null)
             timerText.text = LanguageManager.GetText("time") + Mathf.CeilToInt(_remainingTime);
+
+        if(vibrationLabelText != null)
+            vibrationLabelText.text = LanguageManager.GetText("vibration");
     }
 
     private IEnumerator CheckMatchRoutine()
@@ -679,5 +696,12 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         _isProcessing = false;
     }
+
+    public void OnVibrationToggleChanged(bool isOn)
+    {
+        _isVibrationEnabled = isOn;
+        PlayerPrefs.SetInt("Vibration", isOn ? 1 : 0);
+        PlayerPrefs.Save();
+    }    
     StartCoroutine(ShowCardsAtStart());
 }
