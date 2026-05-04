@@ -63,6 +63,11 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI vibrationLabelText; // Toggle'ın yanındaki yazı
     public Toggle vibrationToggle; // Toggle'ın kendisi
     private bool _isVibrationEnabled = true;
+
+    [Header("Win Panel Score UI")]
+    public TextMeshProUGUI winCurrentMoveText;
+    public TextMeshProUGUI winBestMoveText;
+    public TextMeshProUGUI winBestTimeText;
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -271,25 +276,17 @@ public class GameManager : MonoBehaviour
     public void WinGame()
     {
         _timerActive = false; // saati durdur
+        SaveLevelProgress(); // <--- Rekoru kontrol et ve kaydet
         _isTimerRunning = false; 
         
         Debug.Log("Oyun bitti, süre durduruldu: " + _remainingTime);
+
+        // WinPanel'i açmadan önce UI'ı güncellemeliyiz
+        UpdateWinPanelUI();
     
         if (winPanelGroup != null)
         {
             StartCoroutine(FadeInPanel(winPanelGroup));
-        }
-
-        void SaveBestScore()
-        {
-            string key = "BestScore_" + currentLevel.name;
-            int currentBest = PlayerPrefs.GetInt(key, 0);
-        
-            if (currentBest == 0 || _moveCount < currentBest)
-            {
-                PlayerPrefs.SetInt(key, _moveCount);
-                PlayerPrefs.Save();
-            }
         }
     }
 
@@ -702,6 +699,41 @@ public class GameManager : MonoBehaviour
         _isVibrationEnabled = isOn;
         PlayerPrefs.SetInt("Vibration", isOn ? 1 : 0);
         PlayerPrefs.Save();
-    }    
+    }
+
+    private void SaveLevelProgress()
+    {
+        string moveKey = "BestMove_Level_" + _currentLevelIndex;
+        string timeKey = "BestTime_Level_" + _currentLevelIndex;
+    
+        // HAMLE REKORU: Eğer hiç rekor yoksa (0 ise) veya yeni hamle daha azsa kaydet
+        int bestMove = PlayerPrefs.GetInt(moveKey, 0);
+        if (bestMove == 0 || _moveCount < bestMove)
+        {
+            PlayerPrefs.SetInt(moveKey, _moveCount);
+        }
+    
+        // SÜRE REKORU: Kalan süre ne kadar fazlaysa o kadar iyidir
+        float bestTime = PlayerPrefs.GetFloat(timeKey, 0);
+        if (_remainingTime > bestTime)
+        {
+            PlayerPrefs.SetFloat(timeKey, _remainingTime);
+        }
+    
+        PlayerPrefs.Save();
+    }
+
+    void UpdateWinPanelUI()
+    {
+        string moveKey = "BestMove_Level_" + _currentLevelIndex;
+        string timeKey = "BestTime_Level_" + _currentLevelIndex;
+    
+        int bestMove = PlayerPrefs.GetInt(moveKey, 0);
+        float bestTime = PlayerPrefs.GetFloat(timeKey, 0);
+    
+        winCurrentMoveText.text = LanguageManager.GetText("moves") + ": " + _moveCount;
+        winBestMoveText.text = LanguageManager.GetText("best_move") + ": " + bestMove;
+        winBestTimeText.text = LanguageManager.GetText("best_time") + ": " + Mathf.CeilToInt(bestTime) + "s";
+    }
     StartCoroutine(ShowCardsAtStart());
 }
