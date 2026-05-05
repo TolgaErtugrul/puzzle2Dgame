@@ -68,6 +68,11 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI winCurrentMoveText;
     public TextMeshProUGUI winBestMoveText;
     public TextMeshProUGUI winBestTimeText;
+
+    [Header("Win Panel Stars")]
+    public Image[] starImages; // 3 adet yıldız görseli
+    public Color activeStarColor = Color.yellow;
+    public Color inactiveStarColor = Color.gray;
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -275,14 +280,19 @@ public class GameManager : MonoBehaviour
 
     public void WinGame()
     {
-        _timerActive = false; // saati durdur
-        SaveLevelProgress(); // <--- Rekoru kontrol et ve kaydet
-        _isTimerRunning = false; 
-        
-        Debug.Log("Oyun bitti, süre durduruldu: " + _remainingTime);
-
-        // WinPanel'i açmadan önce UI'ı güncellemeliyiz
-        UpdateWinPanelUI();
+        _timerActive = false;
+        int starsEarned = CalculateStars();
+    
+        // Sadece daha yüksek bir yıldız almışsa kaydet
+        string starKey = "Stars_Level_" + _currentLevelIndex;
+        int previousStars = PlayerPrefs.GetInt(starKey, 0);
+        if (starsEarned > previousStars)
+        {
+            PlayerPrefs.SetInt(starKey, starsEarned);
+            PlayerPrefs.Save();
+        }
+    
+        UpdateWinPanelStars(starsEarned);
     
         if (winPanelGroup != null)
         {
@@ -734,6 +744,25 @@ public class GameManager : MonoBehaviour
         winCurrentMoveText.text = LanguageManager.GetText("moves") + ": " + _moveCount;
         winBestMoveText.text = LanguageManager.GetText("best_move") + ": " + bestMove;
         winBestTimeText.text = LanguageManager.GetText("best_time") + ": " + Mathf.CeilToInt(bestTime) + "s";
+    }
+
+    private int CalculateStars()
+    {
+        // Mevcut seviyenin verisini alalım
+        LevelData currentData = levels[_currentLevelIndex];
+    
+        if (_moveCount <= currentData.threeStarMoveLimit) return 3;
+        if (_moveCount <= currentData.twoStarMoveLimit) return 2;
+        return 1; // Seviyeyi bitirdiği için en az 1 yıldız
+    }
+
+    void UpdateWinPanelStars(int stars)
+    {
+        for (int i = 0; i < starImages.Length; i++)
+        {
+            // Eğer i (0,1,2) kazanılan yıldız sayısından küçükse aktifleştir
+            starImages[i].color = (i < stars) ? activeStarColor : inactiveStarColor;
+        }
     }
     StartCoroutine(ShowCardsAtStart());
 }
