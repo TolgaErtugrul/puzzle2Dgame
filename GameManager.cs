@@ -73,6 +73,9 @@ public class GameManager : MonoBehaviour
     public Image[] starImages; // 3 adet yıldız görseli
     public Color activeStarColor = Color.yellow;
     public Color inactiveStarColor = Color.gray;
+
+    [Header("Audio")]
+    public AudioClip starSound; // Yıldız parladığında çalacak ses
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -282,22 +285,12 @@ public class GameManager : MonoBehaviour
     {
         _timerActive = false;
         int starsEarned = CalculateStars();
-    
-        // Sadece daha yüksek bir yıldız almışsa kaydet
-        string starKey = "Stars_Level_" + _currentLevelIndex;
-        int previousStars = PlayerPrefs.GetInt(starKey, 0);
-        if (starsEarned > previousStars)
-        {
-            PlayerPrefs.SetInt(starKey, starsEarned);
-            PlayerPrefs.Save();
-        }
-    
-        UpdateWinPanelStars(starsEarned);
-    
-        if (winPanelGroup != null)
-        {
-            StartCoroutine(FadeInPanel(winPanelGroup));
-        }
+        SaveLevelProgress(starsEarned); // Yıldızları kaydet
+        
+        UpdateWinPanelUI(); // Metinleri güncelle
+        StartCoroutine(AnimateStars(starsEarned)); // Animasyonu başlat
+        
+        if (winPanelGroup != null) StartCoroutine(FadeInPanel(winPanelGroup));
     }
 
     private IEnumerator FadeInPanel(CanvasGroup cg)
@@ -762,6 +755,39 @@ public class GameManager : MonoBehaviour
         {
             // Eğer i (0,1,2) kazanılan yıldız sayısından küçükse aktifleştir
             starImages[i].color = (i < stars) ? activeStarColor : inactiveStarColor;
+        }
+    }
+
+    private IEnumerator AnimateStars(int starCount)
+    {
+        // Önce tüm yıldızları pasif (gri) yap
+        foreach (var star in starImages)
+        {
+            star.color = inactiveStarColor;
+            star.transform.localScale = Vector3.zero; // Başlangıçta görünmesinler
+        }
+    
+        yield return new WaitForSeconds(0.5f); // Panel açıldıktan sonra kısa bir bekleme
+    
+        for (int i = 0; i < starCount; i++)
+        {
+            // Yıldızı aktifleştir
+            starImages[i].color = activeStarColor;
+            AudioManager.Instance.PlaySFX(starSound);
+    
+            // Küçük bir büyüme animasyonu (Juice)
+            float timer = 0;
+            float duration = 0.3f;
+            while (timer < duration)
+            {
+                timer += Time.deltaTime;
+                float scale = Mathf.Lerp(0, 1.2f, timer / duration); // Biraz büyük başlasın
+                starImages[i].transform.localScale = new Vector3(scale, scale, 1);
+                yield return null;
+            }
+            starImages[i].transform.localScale = Vector3.one; // Normal boyuta sabitle
+            
+            yield return new WaitForSeconds(0.2f); // Bir sonraki yıldızdan önceki kısa boşluk
         }
     }
     StartCoroutine(ShowCardsAtStart());
