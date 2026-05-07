@@ -283,14 +283,21 @@ public class GameManager : MonoBehaviour
 
     public void WinGame()
     {
-        _timerActive = false;
-        int starsEarned = CalculateStars();
-        SaveLevelProgress(starsEarned); // Yıldızları kaydet
+        _timerActive = false; 
+        _isTimerRunning = false;
+    
+        int starsEarned = CalculateStars(); // Yıldız sayısını hesapla
+        SaveLevelProgress(starsEarned);    // Yıldızları ve ilerlemeyi kaydet
         
-        UpdateWinPanelUI(); // Metinleri güncelle
-        StartCoroutine(AnimateStars(starsEarned)); // Animasyonu başlat
+        UpdateWinPanelUI();                // Paneldeki metinleri güncelle
+        UpdateWinPanelStars(starsEarned);  // Yıldızların rengini ayarla (Animasyondan önce sabit renk)
         
-        if (winPanelGroup != null) StartCoroutine(FadeInPanel(winPanelGroup));
+        StartCoroutine(AnimateStars(starsEarned)); // Yıldızları sırayla parlat
+    
+        if (winPanelGroup != null)
+        {
+            StartCoroutine(FadeInPanel(winPanelGroup)); // Paneli yavaşça göster
+        }
     }
 
     private IEnumerator FadeInPanel(CanvasGroup cg)
@@ -737,6 +744,8 @@ public class GameManager : MonoBehaviour
         winCurrentMoveText.text = LanguageManager.GetText("moves") + ": " + _moveCount;
         winBestMoveText.text = LanguageManager.GetText("best_move") + ": " + bestMove;
         winBestTimeText.text = LanguageManager.GetText("best_time") + ": " + Mathf.CeilToInt(bestTime) + "s";
+
+        UpdateUI();
     }
 
     private int CalculateStars()
@@ -789,6 +798,23 @@ public class GameManager : MonoBehaviour
             
             yield return new WaitForSeconds(0.2f); // Bir sonraki yıldızdan önceki kısa boşluk
         }
+    }
+
+    private void SaveLevelProgress(int starsEarned)
+    {
+        // Yıldız Kaydı
+        string starKey = "Stars_Level_" + _currentLevelIndex;
+        int previousStars = PlayerPrefs.GetInt(starKey, 0);
+    
+        if (starsEarned > previousStars)
+        {
+            PlayerPrefs.SetInt(starKey, starsEarned);
+        }
+    
+        // İstersen buraya kilit açma mantığını da ekleyebiliriz (Level 2'yi aç gibi)
+        PlayerPrefs.SetInt("UnlockedLevel", _currentLevelIndex + 1);
+        
+        PlayerPrefs.Save();
     }
     StartCoroutine(ShowCardsAtStart());
 }
