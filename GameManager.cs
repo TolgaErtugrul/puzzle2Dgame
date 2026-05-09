@@ -96,11 +96,16 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        _isVibrationEnabled = PlayerPrefs.GetInt("Vibration", 1) == 1;
-        if(vibrationToggle != null) 
-        vibrationToggle.isOn = _isVibrationEnabled;
+        // Menüden gelen seçim var mı? Yoksa 0 (Level 1) başla.
+        _currentLevelIndex = PlayerPrefs.GetInt("SelectedLevelIndex", 0);
         
-    GenerateLevel();
+        // Mevcut seviye verisini listenden çek
+        currentLevel = levels[_currentLevelIndex];
+    
+        _isVibrationEnabled = PlayerPrefs.GetInt("Vibration", 1) == 1;
+        if(vibrationToggle != null) vibrationToggle.isOn = _isVibrationEnabled;
+    
+        GenerateLevel();
     }
 
     void Update()
