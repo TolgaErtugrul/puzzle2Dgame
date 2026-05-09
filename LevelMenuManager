@@ -1,0 +1,46 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+
+public class LevelMenuManager : MonoBehaviour
+{
+    public static LevelMenuManager Instance;
+
+    public GameObject levelButtonPrefab;
+    public Transform contentParent; // Scroll View içindeki Content objesi
+    public List<LevelData> allLevels; // GameManager'daki listenin aynısını buraya da sürükle
+
+    void Awake() { Instance = this; }
+
+    void Start()
+    {
+        CreateMenu();
+    }
+
+    void CreateMenu()
+    {
+        // En yüksek açılmış seviyeyi kontrol et (Varsayılan 0: Seviye 1)
+        int unlockedLevel = PlayerPrefs.GetInt("UnlockedLevel", 0);
+
+        for (int i = 0; i < allLevels.Count; i++)
+        {
+            GameObject btnObj = Instantiate(levelButtonPrefab, contentParent);
+            LevelButton btnScript = btnObj.GetComponent<LevelButton>();
+
+            // Bu seviye için kaç yıldız alınmış?
+            int savedStars = PlayerPrefs.GetInt("Stars_Level_" + i, 0);
+            
+            // Seviye kilitli mi?
+            bool isUnlocked = (i <= unlockedLevel);
+
+            btnScript.Setup(i, savedStars, isUnlocked);
+        }
+    }
+
+    public void StartSelectedLevel(int index)
+    {
+        // Seçilen seviyeyi static bir değişkende tutarak sahne değişince GameManager'ın okumasını sağlayacağız
+        PlayerPrefs.SetInt("SelectedLevelIndex", index);
+        SceneManager.LoadScene("GameScene"); // Oyunun olduğu sahnenin adı
+    }
+}
