@@ -5,28 +5,40 @@ using TMPro;
 public class LevelButton : MonoBehaviour
 {
     public int levelIndex;
-    public TextMeshProUGUI levelNumberText;
-    public Image[] starIcons;
+    public TextMeshProUGUI levelText;
+    public Image[] stars;
     public GameObject lockIcon;
-    public Button button;
+    public Button mainButton;
 
-    public void Setup(int index, int stars, bool isUnlocked)
+    // Menü yöneticisi bu butonu oluşturduğunda bu fonksiyonu çağıracak
+    public void Setup(int index, int starCount, bool isUnlocked)
     {
         levelIndex = index;
-        levelNumberText.text = (index + 1).ToString();
-        button.interactable = isUnlocked;
+        levelText.text = (index + 1).ToString();
+        
+        // Kilit durumu
         lockIcon.SetActive(!isUnlocked);
+        mainButton.interactable = isUnlocked;
+        levelText.gameObject.SetActive(isUnlocked);
 
         // Yıldızları göster
-        for (int i = 0; i < starIcons.Length; i++)
+        for (int i = 0; i < stars.Length; i++)
         {
-            starIcons[i].color = (i < stars) ? Color.yellow : Color.gray;
+            if (isUnlocked)
+            {
+                stars[i].gameObject.SetActive(true);
+                stars[i].color = (i < starCount) ? Color.yellow : Color.gray;
+            }
+            else
+            {
+                stars[i].gameObject.SetActive(false);
+            }
         }
     }
 
     public void OnClick()
     {
-        // GameManager'a bu seviyeyi yüklemesini söyleyeceğiz
-        // SceneManager.LoadScene("GameScene"); gibi...
+        // GameManager'a hangi seviyenin seçildiğini haber ver
+        LevelMenuManager.Instance.StartSelectedLevel(levelIndex);
     }
 }
