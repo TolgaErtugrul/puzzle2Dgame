@@ -99,8 +99,11 @@ public class GameManager : MonoBehaviour
         // Menüden gelen seçim var mı? Yoksa 0 (Level 1) başla.
         _currentLevelIndex = PlayerPrefs.GetInt("SelectedLevelIndex", 0);
         
-        // Mevcut seviye verisini listenden çek
-        currentLevel = levels[_currentLevelIndex];
+        // Listede bu index var mı kontrol et (Hata almamak için)
+        if (_currentLevelIndex < levels.Count)
+        {
+            currentLevel = levels[_currentLevelIndex];
+        }
     
         _isVibrationEnabled = PlayerPrefs.GetInt("Vibration", 1) == 1;
         if(vibrationToggle != null) vibrationToggle.isOn = _isVibrationEnabled;
@@ -820,6 +823,11 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("UnlockedLevel", _currentLevelIndex + 1);
         
         PlayerPrefs.Save();
+    }
+
+    public void GoToMainMenu()
+    {
+        SceneManager.LoadScene("MenuScene");
     }
     StartCoroutine(ShowCardsAtStart());
 }
