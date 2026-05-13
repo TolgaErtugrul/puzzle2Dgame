@@ -96,6 +96,13 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // Eğer direkt GameScene'den başlattıysak ve hiç seçim yoksa Level 0 yükle
+        if (!PlayerPrefs.HasKey("SelectedLevelIndex"))
+        {
+            PlayerPrefs.SetInt("SelectedLevelIndex", 0);
+        }
+        
+        _currentLevelIndex = PlayerPrefs.GetInt("SelectedLevelIndex", 0);
         // Menüden gelen seçim var mı? Yoksa 0 (Level 1) başla.
         _currentLevelIndex = PlayerPrefs.GetInt("SelectedLevelIndex", 0);
         
