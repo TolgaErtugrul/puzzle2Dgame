@@ -76,6 +76,12 @@ public class GameManager : MonoBehaviour
 
     [Header("Audio")]
     public AudioClip starSound; // Yıldız parladığında çalacak ses
+
+    [Header("Level Info UI")]
+    public CanvasGroup levelInfoPanelGroup;
+    public TextMeshProUGUI infoTitleText;
+    public TextMeshProUGUI infoDescriptionText;
+    public Image infoIcon; // Opsiyonel: Kurala göre ikon değiştirmek istersen
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -835,6 +841,69 @@ public class GameManager : MonoBehaviour
     public void GoToMainMenu()
     {
         SceneManager.LoadScene("MenuScene");
+    }
+
+    private void CheckAndShowLevelRules()
+    {
+        string title = "";
+        string desc = "";
+        bool showPanel = false;
+    
+        // Kural Seviyeleri
+        if (_currentLevelIndex == 9) // Seviye 10 (Index 9)
+        {
+            title = LanguageManager.GetText("warning_title");
+            desc = LanguageManager.GetText("time_penalty_desc"); // "Yanlış hamleler süreyi azaltır!"
+            showPanel = true;
+        }
+        else if (_currentLevelIndex == 19) // Seviye 20
+        {
+            title = LanguageManager.GetText("bonus_title");
+            desc = LanguageManager.GetText("bonus_desc"); // "Bonus kartları bul, süre kazan!"
+            showPanel = true;
+        }
+        else if (_currentLevelIndex == 39) // Seviye 40
+        {
+            title = LanguageManager.GetText("bomb_title");
+            desc = LanguageManager.GetText("bomb_desc"); // "Bombaya dikkat! Tüm kartları kapatır."
+            showPanel = true;
+        }
+    
+        if (showPanel)
+        {
+            _timerActive = false; // Panel açıkken süre akmasın
+            infoTitleText.text = title;
+            infoDescriptionText.text = desc;
+            StartCoroutine(FadeInPanel(levelInfoPanelGroup));
+        }
+
+        if (!showPanel)
+        {
+            StartCoroutine(ShowCardsAtStart());
+        }
+    }
+
+    public void CloseLevelInfoPanel()
+    {
+        StartCoroutine(FadeOutPanel(levelInfoPanelGroup));
+        
+        // Panel kapandıktan sonra kartları gösterme sürecini başlat
+        StartCoroutine(ShowCardsAtStart());
+    }
+    
+    private IEnumerator FadeOutPanel(CanvasGroup cg)
+    {
+        float duration = 0.3f;
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(1, 0, elapsed / duration);
+            yield return null;
+        }
+        cg.gameObject.SetActive(false);
+        cg.interactable = false;
+        cg.blocksRaycasts = false;
     }
     StartCoroutine(ShowCardsAtStart());
 }
