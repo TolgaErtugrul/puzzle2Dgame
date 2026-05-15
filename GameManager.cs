@@ -417,8 +417,9 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(ShowLevelWarning(LanguageManager.GetText("warning_intro")));
         }
-    
-        StartCoroutine(ShowCardsAtStart());
+        
+        StopAllCoroutines();
+        CheckAndShowLevelRules();
     }
     
     // Yardımcı Fonksiyon: Seviyeye göre ikon listesi döndürür
@@ -549,7 +550,7 @@ public class GameManager : MonoBehaviour
             card.backVisual.SetActive(false);
         }
     
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(2.0f);
     
         // Kartları kapat
         foreach (var card in allCards)
@@ -876,19 +877,16 @@ public class GameManager : MonoBehaviour
             infoDescriptionText.text = desc;
             StartCoroutine(FadeInPanel(levelInfoPanelGroup));
         }
-
-        if (!showPanel)
+        else
         {
+            // EĞER HİÇBİR PANEL GÖSTERİLMEYECEKSE, oyunu başlat
             StartCoroutine(ShowCardsAtStart());
         }
     }
 
     public void CloseLevelInfoPanel()
     {
-        StartCoroutine(FadeOutPanel(levelInfoPanelGroup));
-        
-        // Panel kapandıktan sonra kartları gösterme sürecini başlat
-        StartCoroutine(ShowCardsAtStart());
+        StartCoroutine(HandlePanelCloseRoutine());
     }
     
     private IEnumerator FadeOutPanel(CanvasGroup cg)
@@ -905,5 +903,13 @@ public class GameManager : MonoBehaviour
         cg.interactable = false;
         cg.blocksRaycasts = false;
     }
-    StartCoroutine(ShowCardsAtStart());
+
+    private IEnumerator HandlePanelCloseRoutine()
+    {
+        // Paneli yavaşça kapat
+        yield return StartCoroutine(FadeOutPanel(levelInfoPanelGroup));
+        
+        // Panel tamamen kapandıktan sonra kartları gösterme aşamasına geç
+        StartCoroutine(ShowCardsAtStart());
+    }
 }
