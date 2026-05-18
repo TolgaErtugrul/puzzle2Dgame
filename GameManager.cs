@@ -413,12 +413,11 @@ public class GameManager : MonoBehaviour
         StopAllCoroutines(); 
     
         // Seviye 10 (Index 9) uyarısı
-        if (_currentLevelIndex == 10)
+        if (_currentLevelIndex == 9)
         {
-            StartCoroutine(ShowLevelWarning(LanguageManager.GetText("warning_intro")));
+            //StartCoroutine(ShowLevelWarning(LanguageManager.GetText("warning_intro")));
         }
         
-        StopAllCoroutines();
         CheckAndShowLevelRules();
     }
     
@@ -454,10 +453,18 @@ public class GameManager : MonoBehaviour
 
     public void LoadNextLevel()
     {
-        if (_currentLevelIndex < levels.Count - 1)
+        _currentLevelIndex++;
+        if (_currentLevelIndex < levels.Count)
         {
-            _currentLevelIndex++;
             currentLevel = levels[_currentLevelIndex];
+            _matchedPairs = 0;
+            _moveCount = 0;
+            UpdateUI();
+            
+            winPanelGroup.alpha = 0;
+            winPanelGroup.gameObject.SetActive(false);
+    
+            GenerateLevel(); // Sadece bunu çağırman yeterli, devamını zincir halledecek.
         }
         else
         {
@@ -465,9 +472,8 @@ public class GameManager : MonoBehaviour
             Debug.Log("Master Mode: Aynı seviye, daha az süre!");
             currentLevel = levels[_currentLevelIndex]; // Son seviyede kal
             currentLevel.timeLimit *= 0.8f; // Süreyi her seferinde daralt (Dikkat: ScriptableObject'i kalıcı bozabilir, geçici değişkene ata)
+            GenerateLevel();
         }
-        
-        GenerateLevel();
     }
 
     public void PlaySound(AudioClip clip)
@@ -873,6 +879,7 @@ public class GameManager : MonoBehaviour
         if (showPanel)
         {
             _timerActive = false; // Panel açıkken süre akmasın
+            _isProcessing = true; // Kartlara tıklanmasın
             infoTitleText.text = title;
             infoDescriptionText.text = desc;
             StartCoroutine(FadeInPanel(levelInfoPanelGroup));
