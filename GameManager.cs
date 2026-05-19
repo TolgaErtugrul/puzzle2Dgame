@@ -919,4 +919,10 @@ public class GameManager : MonoBehaviour
         // Panel tamamen kapandıktan sonra kartları gösterme aşamasına geç
         StartCoroutine(ShowCardsAtStart());
     }
+
+    public void QuitGame()
+    {
+        Debug.Log("Oyun Kapatılıyor...");
+        Application.Quit(); // Bu komut oyun build alındığında çalışır
+    }
 }
