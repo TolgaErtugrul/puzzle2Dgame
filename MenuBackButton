@@ -1,0 +1,11 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class MenuBackButton : MonoBehaviour
+{
+    public void BackToGameScene()
+    {
+        // Sadece GameScene'i yükle, GameManager gerisini halledecek
+        SceneManager.LoadScene("GameScene");
+    }
+}
