@@ -845,8 +845,13 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    public void GoToMainMenu()
+    public void GoToMainMenu(string sourcePanel)
     {
+        // Hangi panelden geldiğimizi kaydediyoruz
+        // "Win" veya "GameOver" değerlerini alacak
+        PlayerPrefs.SetString("LastOpenedPanel", sourcePanel);
+        PlayerPrefs.Save();
+        
         SceneManager.LoadScene("MenuScene");
     }
 
