@@ -120,8 +120,21 @@ public class GameManager : MonoBehaviour
     
         _isVibrationEnabled = PlayerPrefs.GetInt("Vibration", 1) == 1;
         if(vibrationToggle != null) vibrationToggle.isOn = _isVibrationEnabled;
+
+        if (PlayerPrefs.HasKey("LastOpenedPanel"))
+        {
+            string lastPanel = PlayerPrefs.GetString("LastOpenedPanel");
+            
+            // Kaydı hemen temizleyelim ki her açılışta panel gelmesin
+            PlayerPrefs.DeleteKey("LastOpenedPanel");
     
-        GenerateLevel();
+            RestorePreviousState(lastPanel);
+        }
+        else
+        {
+            // Normal oyun başlangıcı
+            GenerateLevel();
+        }
     }
 
     void Update()
@@ -929,5 +942,32 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Oyun Kapatılıyor...");
         Application.Quit(); // Bu komut oyun build alındığında çalışır
+    }
+
+    void RestorePreviousState(string panelName)
+    {
+        // Oyunu durdur ve butonları kilitle (Çünkü oyun aslında bitmişti)
+        _isProcessing = true;
+        _timerActive = false;
+        timerText.gameObject.SetActive(false);
+    
+        // Grid'i yine de oluştur ki arkada kartlar görünsün (Görsel bütünlük için)
+        GenerateLevel(); 
+    
+        if (panelName == "Win")
+        {
+            // WinPanel'i direkt aç
+            int stars = CalculateStars(); // Veya en son kazanılanı kaydettiysen onu oku
+            UpdateWinPanelUI();
+            UpdateWinPanelStars(stars);
+            winPanelGroup.alpha = 1;
+            winPanelGroup.gameObject.SetActive(true);
+        }
+        else if (panelName == "GameOver")
+        {
+            // GameOverPanel'i direkt aç
+            gameOverPanelGroup.alpha = 1;
+            gameOverPanelGroup.gameObject.SetActive(true);
+        }
     }
 }
