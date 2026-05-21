@@ -350,7 +350,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void GenerateLevel()
+    public void GenerateLevel(bool shouldStartGame = true)
     {
         _comboCount = 0; 
         if (currentLevel == null) return;
@@ -425,13 +425,10 @@ public class GameManager : MonoBehaviour
         // 3. Coroutine yönetimi (Önce durdur, sonra başlat)
         StopAllCoroutines(); 
     
-        // Seviye 10 (Index 9) uyarısı
-        if (_currentLevelIndex == 9)
+        if (shouldStartGame)
         {
-            //StartCoroutine(ShowLevelWarning(LanguageManager.GetText("warning_intro")));
+            CheckAndShowLevelRules();
         }
-        
-        CheckAndShowLevelRules();
     }
     
     // Yardımcı Fonksiyon: Seviyeye göre ikon listesi döndürür
@@ -946,28 +943,39 @@ public class GameManager : MonoBehaviour
 
     void RestorePreviousState(string panelName)
     {
-        // Oyunu durdur ve butonları kilitle (Çünkü oyun aslında bitmişti)
-        _isProcessing = true;
-        _timerActive = false;
-        timerText.gameObject.SetActive(false);
+        /// false gönderiyoruz: Grid kurulsun ama kartlar açılmasın, süre başlamasın
+        GenerateLevel(false); 
+
+        if (panelName == "Win")
+        {
+            foreach (var card in allCards)
+            {
+                card.SetMatched(); // Tüm kartları ön yüzü açık ve eşleşmiş göster
+            }
+        }
     
-        // Grid'i yine de oluştur ki arkada kartlar görünsün (Görsel bütünlük için)
-        GenerateLevel(); 
+        _isProcessing = true; // Tıklamaları kilitle
+        _timerActive = false; // Süreyi durdur
+        timerText.gameObject.SetActive(false);
     
         if (panelName == "Win")
         {
-            // WinPanel'i direkt aç
-            int stars = CalculateStars(); // Veya en son kazanılanı kaydettiysen onu oku
             UpdateWinPanelUI();
-            UpdateWinPanelStars(stars);
+            // CalculateStars() yerine en son kazanılan yıldızı PlayerPrefs'ten okumak daha sağlıklı olur
+            int savedStars = PlayerPrefs.GetInt("Stars_Level_" + _currentLevelIndex, 1);
+            UpdateWinPanelStars(savedStars);
+            
             winPanelGroup.alpha = 1;
             winPanelGroup.gameObject.SetActive(true);
+            winPanelGroup.interactable = true;
+            winPanelGroup.blocksRaycasts = true;
         }
         else if (panelName == "GameOver")
         {
-            // GameOverPanel'i direkt aç
             gameOverPanelGroup.alpha = 1;
             gameOverPanelGroup.gameObject.SetActive(true);
+            gameOverPanelGroup.interactable = true;
+            gameOverPanelGroup.blocksRaycasts = true;
         }
     }
 }
