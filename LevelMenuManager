@@ -39,6 +39,8 @@ public class LevelMenuManager : MonoBehaviour
 
     public void StartSelectedLevel(int index)
     {
+        PlayerPrefs.DeleteKey("LastOpenedPanel");
+
         // Seçilen seviyeyi static bir değişkende tutarak sahne değişince GameManager'ın okumasını sağlayacağız
         PlayerPrefs.SetInt("SelectedLevelIndex", index);
         SceneManager.LoadScene("GameScene"); // Oyunun olduğu sahnenin adı
