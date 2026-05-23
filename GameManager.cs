@@ -208,21 +208,22 @@ public class GameManager : MonoBehaviour
                 _remainingTime += 5f;
                 StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bonus_match")));
             }
-            else if (matchedID == _bombPairID) // 💣 BOMBA BURADA EŞLEŞTİ
+            else if (matchedID == _bombPairID)
             {
-                // BURAYA EKLE: Bomba patlama titremesi
-                UIShake.Instance.Shake(0.5f, 0.8f);
-                // Bomba patlaması: Çok daha pes ve tok bir ses (0.6f)
-                AudioManager.Instance.PlayTokSFX(failSound, 0.6f); 
-                TriggerVibration(true); // Güçlü titreşim
+                int cancelBombCount = PlayerPrefs.GetInt("Inventory_CancelBomb", 0);
                 
-                if (_matchedPairs < totalPairs)
+                if (cancelBombCount > 0)
                 {
-                    StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bomb_hit")));
-                    foreach (var card in allCards)
-                    {
-                        if (!card._isMatched) card.HideCard();
-                    }
+                    // Bombayı etkisiz hale getir
+                    PlayerPrefs.SetInt("Inventory_CancelBomb", cancelBombCount - 1);
+                    StartCoroutine(ShowLevelWarning("Bomba İptal Edildi!"));
+                    // Patlama efekti ve ceza olmadan devam et
+                }
+                else 
+                {
+                    // Normal bomba patlama kodların buraya...
+                    UIShake.Instance.Shake(0.5f, 0.8f);
+                    // ... vs
                 }
             }
     
@@ -404,6 +405,14 @@ public class GameManager : MonoBehaviour
             int randomIndex = Random.Range(i, idList.Count);
             idList[i] = idList[randomIndex];
             idList[randomIndex] = temp;
+        }
+
+        int extraTimeCount = PlayerPrefs.GetInt("Inventory_ExtraTime", 0);
+        if (extraTimeCount > 0)
+        {
+            _remainingTime += 10f; // 10 saniye bonus
+            PlayerPrefs.SetInt("Inventory_ExtraTime", extraTimeCount - 1); // Bir tane kullan
+            StartCoroutine(ShowLevelWarning("Ek Süre Kullanıldı! +10sn"));
         }
     
         // 2. Kartları oluştururken seçtiğimiz 'activeIcons' listesini kullanıyoruz
