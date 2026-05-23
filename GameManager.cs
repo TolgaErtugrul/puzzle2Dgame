@@ -322,6 +322,8 @@ public class GameManager : MonoBehaviour
     
         int starsEarned = CalculateStars(); // Yıldız sayısını hesapla
         SaveLevelProgress(starsEarned);    // Yıldızları ve ilerlemeyi kaydet
+
+        AddStarsToTotal(starsEarned);
         
         UpdateWinPanelUI();                // Paneldeki metinleri güncelle
         UpdateWinPanelStars(starsEarned);  // Yıldızların rengini ayarla (Animasyondan önce sabit renk)
@@ -977,5 +979,12 @@ public class GameManager : MonoBehaviour
             gameOverPanelGroup.interactable = true;
             gameOverPanelGroup.blocksRaycasts = true;
         }
+    }
+
+    public void AddStarsToTotal(int amount)
+    {
+        int currentTotal = PlayerPrefs.GetInt("TotalStars", 0);
+        PlayerPrefs.SetInt("TotalStars", currentTotal + amount);
+        PlayerPrefs.Save();
     }
 }
