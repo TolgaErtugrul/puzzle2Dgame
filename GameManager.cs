@@ -91,6 +91,9 @@ public class GameManager : MonoBehaviour
     private float _remainingTime;
     private int _comboCount = 0;
 
+    bool _isExtraTimeActive = false;
+    bool _isBombProtectorActive = false;
+
     public GameObject matchEffectPrefab;
 
     public TextMeshProUGUI bestMoveText;
@@ -995,5 +998,26 @@ public class GameManager : MonoBehaviour
         int currentTotal = PlayerPrefs.GetInt("TotalStars", 0);
         PlayerPrefs.SetInt("TotalStars", currentTotal + amount);
         PlayerPrefs.Save();
+    }
+
+    public void UseExtraTime()
+    {
+        int count = PlayerPrefs.GetInt("Inventory_ExtraTime", 0);
+        if (count > 0 && !_isExtraTimeActive)
+        {
+            _isExtraTimeActive = true;
+            PlayerPrefs.SetInt("Inventory_ExtraTime", count - 1);
+            // UI'daki bakiye yazısını güncelle (x2 oldu gibi)
+        }
+    }
+
+    public void GrantReward()
+    {
+        int currentStars = PlayerPrefs.GetInt("TotalStars", 0);
+        PlayerPrefs.SetInt("TotalStars", currentStars + 10);
+        PlayerPrefs.Save();
+        
+        // Market arayüzünü güncelle ki oyuncu yıldızının arttığını görsün
+        FindObjectOfType<MarketUIHandler>().UpdateMarketUI();
     }
 }
