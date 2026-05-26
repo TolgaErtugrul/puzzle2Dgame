@@ -51,4 +51,24 @@ public class MarketUIHandler : MonoBehaviour
             UpdateMarketUI();
         }
     }
+
+    public IEnumerator FlashRed(TextMeshProUGUI text)
+    {
+        Color originalColor = text.color;
+        text.color = Color.red; // Yazıyı kırmızı yap
+        yield return new WaitForSeconds(0.1f);
+        text.color = originalColor;
+        yield return new WaitForSeconds(0.1f);
+        text.color = Color.red;
+        yield return new WaitForSeconds(0.1f);
+        text.color = originalColor;
+    }
+
+    public IEnumerator PunchScale(RectTransform rect)
+    {
+        Vector3 originalScale = rect.localScale;
+        rect.localScale = originalScale * 1.2f; // %20 büyüt
+        yield return new WaitForSeconds(0.1f);
+        rect.localScale = originalScale; // Eski haline getir
+    }
 }
