@@ -35,11 +35,21 @@ public class MarketUIHandler : MonoBehaviour
 
     public void OnClick_BuyExtraTime()
     {
-        if (ShopManager.BuyExtraTime())
+        int stars = PlayerPrefs.GetInt("TotalStars", 0);
+        
+        if (stars >= ShopManager.EXTRA_TIME_PRICE)
         {
-            Debug.Log("Süre Satın Alındı!");
-            UpdateMarketUI();
-            // Buraya bir 'Satın Alındı' sesi veya efekti ekleyebilirsin
+            if (ShopManager.BuyExtraTime())
+            {
+                UpdateMarketUI();
+                // Büyüme efekti (B. maddesi)
+                StartCoroutine(PunchScale(buyExtraTimeBtn.GetComponent<RectTransform>()));
+            }
+        }
+        else
+        {
+            // Yetersiz bakiye: Yıldız metnini kırmızı yak söndür
+            StartCoroutine(FlashRed(totalStarsText));
         }
     }
 
