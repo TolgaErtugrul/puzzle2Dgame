@@ -82,6 +82,10 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI infoTitleText;
     public TextMeshProUGUI infoDescriptionText;
     public Image infoIcon; // Opsiyonel: Kurala göre ikon değiştirmek istersen
+
+    [Header("Power-ups")]
+    private bool _isExtraTimePrepared = false;
+    private bool _isBombProtectorPrepared = false;
     
     private Card _firstSelected;
     private Card _secondSelected;
@@ -213,20 +217,15 @@ public class GameManager : MonoBehaviour
             }
             else if (matchedID == _bombPairID)
             {
-                int cancelBombCount = PlayerPrefs.GetInt("Inventory_CancelBomb", 0);
-                
-                if (cancelBombCount > 0)
+                if (_isBombProtectorPrepared)
                 {
-                    // Bombayı etkisiz hale getir
-                    PlayerPrefs.SetInt("Inventory_CancelBomb", cancelBombCount - 1);
-                    StartCoroutine(ShowLevelWarning("Bomba İptal Edildi!"));
-                    // Patlama efekti ve ceza olmadan devam et
+                    _isBombProtectorPrepared = false; // Koruma kullanıldı
+                    Debug.Log("Bomba koruması sayesinde patlama engellendi!");
+                    // Buraya patlamayı engelleyen veya cezayı sıfırlayan kodun gelecek
                 }
                 else 
                 {
-                    // Normal bomba patlama kodların buraya...
-                    UIShake.Instance.Shake(0.5f, 0.8f);
-                    // ... vs
+                    // Normal bomba patlama cezası buraya
                 }
             }
     
@@ -380,6 +379,19 @@ public class GameManager : MonoBehaviour
         {
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             gridLayout.constraintCount = currentLevel.columnCount;
+        }
+
+        if (shouldStartGame)
+        {
+            // EK SÜRE KONTROLÜ
+            if (_isExtraTimePrepared)
+            {
+                _remainingTime += 10f; // 10 saniye ekle
+                _isExtraTimePrepared = false; // Kullanıldı, sıfırla
+                Debug.Log("Süre eklendi!");
+            }
+    
+            CheckAndShowLevelRules();
         }
     
         _remainingTime = currentLevel.timeLimit; 
@@ -1019,5 +1031,29 @@ public class GameManager : MonoBehaviour
         
         // Market arayüzünü güncelle ki oyuncu yıldızının arttığını görsün
         FindObjectOfType<MarketUIHandler>().UpdateMarketUI();
+    }
+
+    public void PrepareExtraTime()
+    {
+        int count = PlayerPrefs.GetInt("Inventory_ExtraTime", 0);
+        if (count > 0 && !_isExtraTimePrepared)
+        {
+            _isExtraTimePrepared = true;
+            PlayerPrefs.SetInt("Inventory_ExtraTime", count - 1);
+            PlayerPrefs.Save();
+            Debug.Log("Ek Süre bu bölüm için hazır!");
+        }
+    }
+    
+    public void PrepareCancelBomb()
+    {
+        int count = PlayerPrefs.GetInt("Inventory_CancelBomb", 0);
+        if (count > 0 && !_isBombProtectorPrepared)
+        {
+            _isBombProtectorPrepared = true;
+            PlayerPrefs.SetInt("Inventory_CancelBomb", count - 1);
+            PlayerPrefs.Save();
+            Debug.Log("Bomba Koruması bu bölüm için hazır!");
+        }
     }
 }
