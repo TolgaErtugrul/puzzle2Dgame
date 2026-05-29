@@ -220,12 +220,24 @@ public class GameManager : MonoBehaviour
                 if (_isBombProtectorPrepared)
                 {
                     _isBombProtectorPrepared = false; // Koruma kullanıldı
+                    StartCoroutine(ShowLevelWarning("Bomba İptal Edildi!"));
                     Debug.Log("Bomba koruması sayesinde patlama engellendi!");
                     // Buraya patlamayı engelleyen veya cezayı sıfırlayan kodun gelecek
                 }
                 else 
                 {
-                    // Normal bomba patlama cezası buraya
+                    UIShake.Instance.Shake(0.5f, 0.8f);
+                    AudioManager.Instance.PlayTokSFX(failSound, 0.6f); 
+                    AudioManager.Instance.TriggerVibration(true);
+            
+                    if (_matchedPairs < totalPairs)
+                    {
+                        StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bomb_hit")));
+                        foreach (var card in allCards)
+                        {
+                            if (!card._isMatched) card.HideCard();
+                        }
+                    }
                 }
             }
     
@@ -282,7 +294,15 @@ public class GameManager : MonoBehaviour
         _secondSelected = null;
         // Yanlış cevapta ekran hafifçe sallansın
         UIShake.Instance.Shake(0.2f, 0.1f);
-        if (_matchedPairs < totalPairs) _isProcessing = false;
+
+        if (_matchedPairs < totalPairs) 
+        {
+            _isProcessing = false;
+        }
+        else 
+        {
+            _isProcessing = true; // Oyun bitti, kimse hiçbir şeye tıklayamasın!
+        }
     }
     
     // Yeni Yardımcı Fonksiyon: Bomba son çiftse oyunu bitirir
