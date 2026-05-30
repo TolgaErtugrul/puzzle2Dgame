@@ -20,14 +20,13 @@ public class MarketUIHandler : MonoBehaviour
 
     public void UpdateMarketUI()
     {
-        // Toplam yıldızı güncelle
-        int totalStars = PlayerPrefs.GetInt("TotalStars", 0);
-        totalStarsText.text = totalStars.ToString();
-
-        // Envanter miktarlarını güncelle
-        extraTimeCountText.text = "Sahip olunan: " + PlayerPrefs.GetInt("Inventory_ExtraTime", 0);
-        cancelBombCountText.text = "Sahip olunan: " + PlayerPrefs.GetInt("Inventory_CancelBomb", 0);
-
+        // Yıldız bakiyesi
+        int stars = PlayerPrefs.GetInt("TotalStars", 0);
+        totalStarsText.text = stars.ToString();
+    
+        // Adetler (Buradaki isimlerin PlayerPrefs kayıtlarınla aynı olduğundan emin ol)
+        extraTimeCountText.text = "Adet: " + PlayerPrefs.GetInt("Inventory_ExtraTime", 0);
+        cancelBombCountText.text = "Adet: " + PlayerPrefs.GetInt("Inventory_CancelBomb", 0);
         // Butonların tıklanabilirliğini kontrol et (Yetersiz bakiye kontrolü)
         buyExtraTimeBtn.interactable = totalStars >= ShopManager.EXTRA_TIME_PRICE;
         buyCancelBombBtn.interactable = totalStars >= ShopManager.CANCEL_BOMB_PRICE;
