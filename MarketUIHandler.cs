@@ -1,14 +1,19 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Collections;
 
 public class MarketUIHandler : MonoBehaviour
 {
-    [Header("UI Elements")]
+    [Header("UI Elements - Bakiyeler")]
     public TextMeshProUGUI totalStarsText;
     public TextMeshProUGUI extraTimeCountText;
     public TextMeshProUGUI cancelBombCountText;
 
+    [Header("UI Elements - Fiyatlar")]
+    public TextMeshProUGUI extraTimePriceText;
+    public TextMeshProUGUI cancelBombPriceText;
+    
     [Header("Buttons")]
     public Button buyExtraTimeBtn;
     public Button buyCancelBombBtn;
@@ -22,11 +27,16 @@ public class MarketUIHandler : MonoBehaviour
     {
         // Yıldız bakiyesi
         int stars = PlayerPrefs.GetInt("TotalStars", 0);
-        totalStarsText.text = stars.ToString();
+        totalStarsText.text = totalStars.ToString();
     
         // Adetler (Buradaki isimlerin PlayerPrefs kayıtlarınla aynı olduğundan emin ol)
         extraTimeCountText.text = "Adet: " + PlayerPrefs.GetInt("Inventory_ExtraTime", 0);
         cancelBombCountText.text = "Adet: " + PlayerPrefs.GetInt("Inventory_CancelBomb", 0);
+
+        // Fiyat etiketlerini ShopManager'dan çekip yazdırıyoruz (Artık 999 yazmayacak)
+        if(extraTimePriceText != null) extraTimePriceText.text = ShopManager.EXTRA_TIME_PRICE.ToString();
+        if(cancelBombPriceText != null) cancelBombPriceText.text = ShopManager.CANCEL_BOMB_PRICE.ToString();
+        
         // Butonların tıklanabilirliğini kontrol et (Yetersiz bakiye kontrolü)
         buyExtraTimeBtn.interactable = totalStars >= ShopManager.EXTRA_TIME_PRICE;
         buyCancelBombBtn.interactable = totalStars >= ShopManager.CANCEL_BOMB_PRICE;
@@ -34,9 +44,7 @@ public class MarketUIHandler : MonoBehaviour
 
     public void OnClick_BuyExtraTime()
     {
-        int stars = PlayerPrefs.GetInt("TotalStars", 0);
-        
-        if (stars >= ShopManager.EXTRA_TIME_PRICE)
+        if (PlayerPrefs.GetInt("TotalStars", 0) >= ShopManager.EXTRA_TIME_PRICE)
         {
             if (ShopManager.BuyExtraTime())
             {
@@ -54,10 +62,17 @@ public class MarketUIHandler : MonoBehaviour
 
     public void OnClick_BuyCancelBomb()
     {
-        if (ShopManager.BuyCancelBomb())
+        if (PlayerPrefs.GetInt("TotalStars", 0) >= ShopManager.CANCEL_BOMB_PRICE)
         {
-            Debug.Log("Bomba İptali Satın Alındı!");
-            UpdateMarketUI();
+            if (ShopManager.BuyCancelBomb())
+            {
+                UpdateMarketUI();
+                StartCoroutine(PunchScale(buyCancelBombBtn.GetComponent<RectTransform>()));
+            }
+        }
+        else
+        {
+            StartCoroutine(FlashRed(totalStarsText));
         }
     }
 
