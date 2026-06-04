@@ -94,6 +94,8 @@ public class GameManager : MonoBehaviour
     private bool _isTimerRunning = false;
     private float _remainingTime;
     private int _comboCount = 0;
+    
+    int _wrongMatchCount = 0;
 
     bool _isExtraTimeActive = false;
     bool _isBombProtectorActive = false;
@@ -227,18 +229,22 @@ public class GameManager : MonoBehaviour
                 else 
                 {
                     UIShake.Instance.Shake(0.5f, 0.8f);
+                    _remainingTime -= 10f;
                     AudioManager.Instance.PlayTokSFX(failSound, 0.6f); 
                     AudioManager.Instance.TriggerVibration(true);
             
-                    if (_matchedPairs < totalPairs)
-                    {
-                        StartCoroutine(ShowLevelWarning(LanguageManager.GetText("bomb_hit")));
-                        foreach (var card in allCards)
-                        {
-                            if (!card._isMatched) card.HideCard();
-                        }
-                    }
+                    // Eşleşmiş sayısını artırma! Hatta bombayı geri kapat
+                    yield return new WaitForSeconds(0.5f);
+                    _firstSelected.HideCard();
+                    _secondSelected.HideCard();
+                    
+                    StartCoroutine(ShowLevelWarning("BOMBA PATLADI! -10sn"));
                 }
+                // Temizlik yap ve çık, aşağıda normal eşleşme gibi işlem görmesin
+                _firstSelected = null;
+                _secondSelected = null;
+                _isProcessing = false;
+                yield break;
             }
     
             // ✅ EŞLEŞME GÖRSEL İŞLEMLERİ
@@ -272,6 +278,14 @@ public class GameManager : MonoBehaviour
         
             // BURAYA EKLE: Yanlış seçimde hafif titreme
             UIShake.Instance.Shake(0.2f, 0.4f); 
+
+            _wrongMatchCount++; // Yanlış sayısını artır
+
+            if (_wrongMatchCount >= 10)
+            {
+                _wrongMatchCount = 0; // Sıfırla
+                ShuffleRemainingCards(); // Kartları karıştır (Bu fonksiyonu yazmıştık)
+            }
     
             if (_currentLevelIndex >= 10) 
             {
@@ -795,26 +809,17 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    private void SaveLevelProgress()
+    public void SaveLevelProgress()
     {
-        string moveKey = "BestMove_Level_" + _currentLevelIndex;
-        string timeKey = "BestTime_Level_" + _currentLevelIndex;
+        int highestLevel = PlayerPrefs.GetInt("UnlockedLevel", 1);
+        int nextLevel = _currentLevelIndex + 1;
     
-        // HAMLE REKORU: Eğer hiç rekor yoksa (0 ise) veya yeni hamle daha azsa kaydet
-        int bestMove = PlayerPrefs.GetInt(moveKey, 0);
-        if (bestMove == 0 || _moveCount < bestMove)
+        // Sadece yeni geçilen seviye, eskiden açılmış olanlardan büyükse kaydet
+        if (nextLevel > highestLevel)
         {
-            PlayerPrefs.SetInt(moveKey, _moveCount);
+            PlayerPrefs.SetInt("UnlockedLevel", nextLevel);
+            PlayerPrefs.Save();
         }
-    
-        // SÜRE REKORU: Kalan süre ne kadar fazlaysa o kadar iyidir
-        float bestTime = PlayerPrefs.GetFloat(timeKey, 0);
-        if (_remainingTime > bestTime)
-        {
-            PlayerPrefs.SetFloat(timeKey, _remainingTime);
-        }
-    
-        PlayerPrefs.Save();
     }
 
     void UpdateWinPanelUI()
