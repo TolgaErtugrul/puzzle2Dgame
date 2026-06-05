@@ -809,17 +809,31 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    public void SaveLevelProgress()
+   private void SaveLevelProgress(int starsEarned)
     {
-        int highestLevel = PlayerPrefs.GetInt("UnlockedLevel", 1);
+        // 1. YILDIZ KAYDI (Sadece daha yüksek yıldız aldıysa güncelle)
+        string starKey = "Stars_Level_" + _currentLevelIndex;
+        int previousStars = PlayerPrefs.GetInt(starKey, 0);
+    
+        if (starsEarned > previousStars)
+        {
+            PlayerPrefs.SetInt(starKey, starsEarned);
+        }
+    
+        // 2. KİLİT AÇMA MANTIĞI (Sadece daha yüksek seviye açılıyorsa güncelle)
+        int currentlyUnlocked = PlayerPrefs.GetInt("UnlockedLevel", 1);
         int nextLevel = _currentLevelIndex + 1;
     
-        // Sadece yeni geçilen seviye, eskiden açılmış olanlardan büyükse kaydet
-        if (nextLevel > highestLevel)
+        // Eğer bitirdiğimiz seviyenin bir sonrası, zaten açılmış olandan büyükse yeni kilidi aç
+        if (nextLevel > currentlyUnlocked)
         {
             PlayerPrefs.SetInt("UnlockedLevel", nextLevel);
-            PlayerPrefs.Save();
         }
+    
+        // Değişiklikleri diske yaz
+        PlayerPrefs.Save();
+        
+        Debug.Log("İlerleme Kaydedildi. Yıldız: " + starsEarned + " | Açık Seviye: " + PlayerPrefs.GetInt("UnlockedLevel"));
     }
 
     void UpdateWinPanelUI()
