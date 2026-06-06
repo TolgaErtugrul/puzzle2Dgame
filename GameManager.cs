@@ -211,6 +211,13 @@ public class GameManager : MonoBehaviour
         {
             int matchedID = _firstSelected.GetID(); // Değişken burada tanımlı
             _matchedPairs++; 
+
+            if (_currentLevelIndex == 1) 
+            {
+                PlayerPrefs.SetInt("TutorialCompleted", 1);
+                PlayerPrefs.Save();
+                handPointer.SetActive(false);
+            }
     
             if (matchedID == _bonusPairID)
             {
@@ -1093,6 +1100,22 @@ public class GameManager : MonoBehaviour
             PlayerPrefs.SetInt("Inventory_CancelBomb", count - 1);
             PlayerPrefs.Save();
             Debug.Log("Bomba Koruması bu bölüm için hazır!");
+        }
+    }
+
+    private IEnumerator GameTutorialRoutine()
+    {
+        // Oyuncu 1. seviyedeyse ve henüz eğitimi geçmediyse
+        if (_currentLevelIndex == 1 && PlayerPrefs.GetInt("TutorialCompleted", 0) == 0)
+        {
+            yield return new WaitForSeconds(0.5f); // Kartlar kapandıktan az sonra
+            
+            // Ekrana "Kartlara Tıklayarak Eşleştir!" yazısı çıkarabilirsin
+            StartCoroutine(ShowLevelWarning("Kartlara Tıklayarak Eşleştir!"));
+    
+            // El ikonunu ilk karta götür
+            handPointer.SetActive(true);
+            handPointer.transform.position = allCards[0].transform.position;
         }
     }
 }
