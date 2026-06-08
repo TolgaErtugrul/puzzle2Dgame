@@ -10,6 +10,8 @@ public class LevelMenuManager : MonoBehaviour
     public Transform contentParent; // Scroll View içindeki Content objesi
     public List<LevelData> allLevels; // GameManager'daki listenin aynısını buraya da sürükle
 
+    public GameObject startPanel;
+
     void Awake() { Instance = this; }
 
     void Start()
@@ -44,5 +46,20 @@ public class LevelMenuManager : MonoBehaviour
         // Seçilen seviyeyi static bir değişkende tutarak sahne değişince GameManager'ın okumasını sağlayacağız
         PlayerPrefs.SetInt("SelectedLevelIndex", index);
         SceneManager.LoadScene("GameScene"); // Oyunun olduğu sahnenin adı
+    }
+
+    public void OnClick_PlayButton()
+    {
+        // Eğer daha önce hiç oynamamışsa (Eğitim tamamlanmadıysa)
+        if (PlayerPrefs.GetInt("TutorialCompleted", 0) == 0)
+        {
+            // Direkt Seviye 1'i yükle
+            UnityEngine.SceneManagement.SceneManager.LoadScene("GameScene");
+        }
+        else
+        {
+            // Daha önce oynamışsa sadece paneli kapat, arkadaki seviye listesi görünsün
+            startPanel.SetActive(false);
+        }
     }
 }
