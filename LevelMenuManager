@@ -16,7 +16,14 @@ public class LevelMenuManager : MonoBehaviour
 
     void Start()
     {
-        CreateMenu();
+        // Eğer oyuncu daha önce oynamışsa StartPanel'i direkt kapat
+        if (PlayerPrefs.GetInt("TutorialCompleted", 0) == 1)
+        {
+            if (startPanel != null) 
+            {
+                startPanel.SetActive(false);
+            }
+        }
     }
 
     void CreateMenu()
