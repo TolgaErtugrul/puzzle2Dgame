@@ -326,6 +326,10 @@ public class GameManager : MonoBehaviour
         {
             _isProcessing = true; // Oyun bitti, kimse hiçbir şeye tıklayamasın!
         }
+
+        StartCoroutine(GameTutorialRoutine()); 
+        
+        StartCoroutine(ShowCardsAtStart());
     }
     
     // Yeni Yardımcı Fonksiyon: Bomba son çiftse oyunu bitirir
