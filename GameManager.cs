@@ -287,13 +287,19 @@ public class GameManager : MonoBehaviour
         
             // BURAYA EKLE: Yanlış seçimde hafif titreme
             UIShake.Instance.Shake(0.2f, 0.4f); 
+            AudioManager.Instance.PlayTokSFX(failSound, 0.8f); 
 
             _wrongMatchCount++; // Yanlış sayısını artır
 
-            if (_wrongMatchCount >= 10)
+            if (_currentLevelIndex >= 29) 
             {
-                _wrongMatchCount = 0; // Sıfırla
-                ShuffleRemainingCards(); // Kartları karıştır (Bu fonksiyonu yazmıştık)
+                _wrongMatchCount++; 
+                
+                if (_wrongMatchCount >= 10)
+                {
+                    _wrongMatchCount = 0; // Sayacı sıfırla
+                    StartCoroutine(ShuffleRoutine()); // Karıştırmayı başlat
+                }
             }
     
             if (_currentLevelIndex >= 10) 
@@ -304,11 +310,6 @@ public class GameManager : MonoBehaviour
             
             _firstSelected.HideCard();
             _secondSelected.HideCard();
-            
-            // Yanlış cevap: Sesi biraz daha pes (0.8f) çalalım ki "tok" gelsin
-            AudioManager.Instance.PlayTokSFX(failSound, 0.8f); 
-            UIShake.Instance.Shake(0.2f, 0.4f);
-            TriggerVibration(false); // Hafif titreşim
             
             _comboCount = 0;
         }
@@ -786,14 +787,6 @@ public class GameManager : MonoBehaviour
     
         infoText.gameObject.SetActive(false);
         infoText.transform.localScale = Vector3.one; // Scale'i sıfırla
-    }
-
-    void CheckForShuffle()
-    {
-        if (_currentLevelIndex >= 30 && _moveCount > 0 && _moveCount % 10 == 0)
-        {
-            StartCoroutine(ShuffleRoutine());
-        }
     }
 
     private IEnumerator ShuffleRoutine()
