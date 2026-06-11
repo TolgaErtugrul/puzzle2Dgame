@@ -405,6 +405,10 @@ public class GameManager : MonoBehaviour
 
     public void GenerateLevel(bool shouldStartGame = true)
     {
+        _wrongMatchCount = 0; // Yeni seviye, temiz sayfa!
+        _moveCount = 0;       // Varsa hamle sayısını da sıfırla
+        _matchedPairs = 0;
+        
         _comboCount = 0; 
         if (currentLevel == null) return;
     
