@@ -1,44 +1,26 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
-    public AudioSource musicSource;
-    public AudioSource sfxSource;
+
+    [Header("Audio Sources")]
+    [SerializeField] private AudioSource musicSource;
+    [SerializeField] private AudioSource sfxSource;
 
     void Awake()
     {
-        Instance = this;
-        // Kayıtlı ses ayarını yükle (Varsayılan: 1 yani Açık)
-        float savedVolume = PlayerPrefs.GetFloat("MusicVolume", 1f);
-        musicSource.volume = savedVolume;
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else { Destroy(gameObject); }
     }
 
-    public void ToggleMusic(bool isOn)
+    public void PlaySFX(AudioClip clip)
     {
-        float volume = isOn ? 1f : 0f;
-        musicSource.volume = volume;
-        PlayerPrefs.SetFloat("MusicVolume", volume);
-        PlayerPrefs.Save();
+        sfxSource.PlayOneShot(clip);
     }
 
-    public void PlayTokSFX(AudioClip clip, float pitch = 1.0f)
+    public void ToggleMusic()
     {
-        if (clip == null) return;
-        
-        // Geçici bir AudioSource oluşturup sesi çalmak için (üst üste binmeler için)
-        audioSource.pitch = pitch; // Sesi pesleştirmek için 1.0'dan küçük değerler (0.8 gibi)
-        audioSource.PlayOneShot(clip);
-    }
-
-    public void TriggerVibration(bool isStrong)
-    {
-        // 🛡️ KONTROL: Eğer ayar kapalıysa hiçbir şey yapma ve çık
-    if (!_isVibrationEnabled) return;
-
-    #if UNITY_ANDROID || UNITY_IOS
-    Handheld.Vibrate();
-    #endif
+        musicSource.mute = !musicSource.mute;
     }
 }
