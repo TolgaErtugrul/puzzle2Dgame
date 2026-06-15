@@ -1124,4 +1124,31 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    public void LoadLevelData(int levelIndex)
+    {
+        _currentLevelIndex = levelIndex;
+        
+        int totalCreatedLevels = 51;
+    
+        // Eğer oyuncu 51. seviyeden büyükse (52, 53...), 
+        // var olan 51 seviyeden birini matematiksel olarak seçer.
+        // Örn: Seviye 52 için (51 % 51 = 0) yani 1. seviyenin dizilimini getirir.
+        int levelToLoad = levelIndex % totalCreatedLevels;
+    
+        // Ekranda görünen metni güncelle (Index 0 olduğu için +1)
+        // Oyuncu "Level 52" görür ama içerik "Level 1"den gelir.
+        levelTitleText.text = LanguageManager.GetText("level_label") + " " + (levelIndex + 1);
+    
+        // Verileri yüklerken 'levelToLoad' değişkenini kullanıyoruz
+        PrepareLevelLayout(levelToLoad); 
+    
+        // ZORLUK ARTTIRMA
+        // Eğer seviye 51'den büyükse, her döngüde süreyi %5 azalt
+        if (levelIndex >= totalCreatedLevels)
+        {
+            int loopCount = levelIndex / totalCreatedLevels;
+            _remainingTime -= (loopCount * 5f); // Her turda 5 saniye daha az süre
+        }
+    }
 }
