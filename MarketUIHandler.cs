@@ -18,6 +18,11 @@ public class MarketUIHandler : MonoBehaviour
     public Button buyExtraTimeBtn;
     public Button buyCancelBombBtn;
 
+    [Header("Ads")]
+    public Button watchAdForStarsBtn;
+
+    private string adUnitId = "Rewarded_Android";
+
     void Start()
     {
         UpdateMarketUI();
@@ -94,5 +99,19 @@ public class MarketUIHandler : MonoBehaviour
         rect.localScale = originalScale * 1.2f; // %20 büyüt
         yield return new WaitForSeconds(0.1f);
         rect.localScale = originalScale; // Eski haline getir
+    }
+
+    private void AwardStars()
+    {
+        int currentStars = PlayerPrefs.GetInt("TotalStars", 0);
+        currentStars += 10; // 10 Yıldız hediye
+        PlayerPrefs.SetInt("TotalStars", currentStars);
+        PlayerPrefs.Save();
+    
+        UpdateMarketUI(); // Ekrandaki yıldız sayısını güncelle
+        
+        // Küçük bir görsel geri bildirim
+        StartCoroutine(PunchScale(totalStarsText.GetComponent<RectTransform>()));
+        Debug.Log("Reklam izlendi: 10 Yıldız eklendi.");
     }
 }
