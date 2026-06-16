@@ -6,10 +6,9 @@ public class AdsManager : MonoBehaviour
     public static AdsManager Instance; // Kolay erişim için
     private LevelPlayRewardedAd rewardedVideoAd;
 
-    void Awake()
-    {
-        Instance = this;
-    }
+    private string currentRewardType = "";
+
+    void Awake() { Instance = this; }
 
     void Start()
     {
@@ -36,8 +35,10 @@ public class AdsManager : MonoBehaviour
         rewardedVideoAd.LoadAd();
     }
 
-    public void ShowRewardedAd()
+    public void ShowRewardedAd(string rewardType)
     {
+        currentRewardType = rewardType;
+        
         if (rewardedVideoAd != null && rewardedVideoAd.IsAdReady())
         {
             rewardedVideoAd.ShowAd();
@@ -52,8 +53,16 @@ public class AdsManager : MonoBehaviour
     // Oyuncu reklamı bitirince çalışacak fonksiyon
     void OnUserRewarded(LevelPlayAdInfo adInfo, LevelPlayReward reward)
     {
-        Debug.Log("Reklam başarıyla izlendi!");
-        GameManager.Instance.WatchAdAndContinue();
+        if (currentRewardType == "Continue")
+        {
+            GameManager.Instance.WatchAdAndContinue();
+        }
+        else if (currentRewardType == "MarketStars")
+        {
+            // Market scriptindeki AwardStars'ı tetikle
+            // MarketUIHandler sahnede bir tane olduğu için FindObjectOfType kullanabiliriz
+            FindObjectOfType<MarketUIHandler>()?.AwardStars();
+        }
         
         // Bir sonraki kullanım için reklamı tekrar yükle
         rewardedVideoAd.LoadAd();
