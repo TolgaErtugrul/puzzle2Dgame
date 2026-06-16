@@ -101,7 +101,13 @@ public class MarketUIHandler : MonoBehaviour
         rect.localScale = originalScale; // Eski haline getir
     }
 
-    private void AwardStars()
+    public void OnClick_WatchAdForStars()
+    {
+        // AdsManager'a "Ben yıldız için reklam izletiyorum" diyoruz
+        AdsManager.Instance.ShowRewardedAd("MarketStars");
+    }
+
+    public void AwardStars()
     {
         int currentStars = PlayerPrefs.GetInt("TotalStars", 0);
         currentStars += 10; // 10 Yıldız hediye
