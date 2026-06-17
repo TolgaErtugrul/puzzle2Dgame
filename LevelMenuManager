@@ -28,10 +28,9 @@ public class LevelMenuManager : MonoBehaviour
 
     void CreateMenu()
     {
-        // En yüksek açılmış seviyeyi kontrol et (Varsayılan 0: Seviye 1)
-        int unlockedLevel = PlayerPrefs.GetInt("UnlockedLevel", 0);
+        int unlocked = PlayerPrefs.GetInt("UnlockedLevel", 1);
 
-        for (int i = 0; i < allLevels.Count; i++)
+        for (int i = 0; i < unlocked; i++)
         {
             GameObject btnObj = Instantiate(levelButtonPrefab, contentParent);
             LevelButton btnScript = btnObj.GetComponent<LevelButton>();
