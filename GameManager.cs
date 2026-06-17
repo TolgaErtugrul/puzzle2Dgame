@@ -542,27 +542,25 @@ public class GameManager : MonoBehaviour
     public void LoadNextLevel()
     {
         _currentLevelIndex++;
-        // MODULO (%) kullanarak hangi listenin çekileceğini buluyoruz
-        // Örn: levels.Count 51 ise; 51 % 51 = 0 olur (Baştaki seviye gelir)
-        int levelToLoadIndex = _currentLevelIndex % levels.Count;
+       
+        int levelToLoadIndex;
     
-        // Seviye verisini (Layout vs.) döngüsel olarak seçiyoruz
+        if (_currentLevelIndex < levels.Count)
+        {
+            levelToLoadIndex = _currentLevelIndex;
+        }
+        else
+        {
+            // 51. seviyeden sonra Seviye 1 (Index 0) yerine 
+            // Seviye 11'e (Index 10) dön ki oyuncu çok kolay seviyelerle sıkılmasın.
+            int startLoopIndex = 10; 
+            levelToLoadIndex = startLoopIndex + ((_currentLevelIndex - levels.Count) % (levels.Count - startLoopIndex));
+        }
+    
         currentLevel = levels[levelToLoadIndex];
         
-        // UI'daki seviye numarasını güncel tutuyoruz (Ekranda Level 52 yazar)
-        levelTitleText.text = LanguageManager.GetText("level_label") + " " + (_currentLevelIndex + 1);
-    
-        // Sayaçları sıfırla
-        _matchedPairs = 0;
-        _moveCount = 0;
-        _wrongMatchCount = 0;
-        UpdateUI();
-        
-        // WinPanel'i kapat
-        winPanelGroup.alpha = 0;
-        winPanelGroup.gameObject.SetActive(false);
-    
-        // Yeni gridi oluştur
+        // UI Güncelleme ve Resetleme işlemleri aşağıda devam eder...
+        ResetGameState(); 
         GenerateLevel();
         
         Debug.Log("Yüklenen Seviye Datası Indexi: " + levelToLoadIndex + " | Görünen Seviye: " + (_currentLevelIndex + 1));
