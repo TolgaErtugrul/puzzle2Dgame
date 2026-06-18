@@ -1153,4 +1153,35 @@ public class GameManager : MonoBehaviour
             _remainingTime -= (loopCount * 5f); // Her turda 5 saniye daha az süre
         }
     }
+
+    private void ResetGameState()
+    {
+        // Sayaçları sıfırla
+        _wrongMatchCount = 0;
+        _moveCount = 0;
+        _matchedPairs = 0;
+        
+        // Durumları başlangıca döndür
+        _isProcessing = false;
+        _timerActive = true; 
+    
+        // UI elemanlarını temizle
+        if (handPointer != null) 
+        {
+            handPointer.SetActive(false);
+        }
+    
+        // Eğer varsa WinPanel veya InfoPanel'i gizle
+        if (winPanelGroup != null)
+        {
+            winPanelGroup.alpha = 0;
+            winPanelGroup.gameObject.SetActive(false);
+        }
+        
+        // Listeleri veya seçili kartları temizle
+        _firstSelected = null;
+        _secondSelected = null;
+    
+        Debug.Log("Oyun durumu başarıyla sıfırlandı.");
+    }
 }
