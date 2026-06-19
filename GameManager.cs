@@ -113,38 +113,44 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // Eğer direkt GameScene'den başlattıysak ve hiç seçim yoksa Level 0 yükle
-        if (!PlayerPrefs.HasKey("SelectedLevelIndex"))
+        // 1. Seçili seviye indexini al
+        _currentLevelIndex = PlayerPrefs.GetInt("SelectedLevelIndex", 0);
+
+        // 2. Modulo (%) kullanarak hangi verinin yükleneceğini hesapla
+        // levels.Count 51 ise ve index 51 ise; 51 % 51 = 0 olur (Başa döner)
+        int levelToLoadIndex = _currentLevelIndex % levels.Count;
+
+        // 3. Veriyi çek (Güvenli şekilde)
+        if (levels != null && levels.Count > 0)
         {
-            PlayerPrefs.SetInt("SelectedLevelIndex", 0);
+            currentLevel = levels[levelToLoadIndex];
         }
-        
-        _currentLevelIndex = PlayerPrefs.GetInt("SelectedLevelIndex", 0);
-        // Menüden gelen seçim var mı? Yoksa 0 (Level 1) başla.
-        _currentLevelIndex = PlayerPrefs.GetInt("SelectedLevelIndex", 0);
-        
-        // Listede bu index var mı kontrol et (Hata almamak için)
-        if (_currentLevelIndex < levels.Count)
+        else
         {
-            currentLevel = levels[_currentLevelIndex];
+            Debug.LogError("Levels listesi boş! Lütfen Inspector'dan seviyeleri atayın.");
+            return;
+        }
+
+        // 4. UI Başlığını Güncelle (Örn: "Level 52")
+        if (levelTitleText != null)
+        {
+            levelTitleText.text = LanguageManager.GetText("level_label") + " " + (_currentLevelIndex + 1);
         }
     
+        // Ayarlar
         _isVibrationEnabled = PlayerPrefs.GetInt("Vibration", 1) == 1;
         if(vibrationToggle != null) vibrationToggle.isOn = _isVibrationEnabled;
-
+    
+        // 5. Panel geri yükleme veya normal başlangıç
         if (PlayerPrefs.HasKey("LastOpenedPanel"))
         {
             string lastPanel = PlayerPrefs.GetString("LastOpenedPanel");
-            
-            // Kaydı hemen temizleyelim ki her açılışta panel gelmesin
             PlayerPrefs.DeleteKey("LastOpenedPanel");
-    
             RestorePreviousState(lastPanel);
         }
         else
         {
-            // Normal oyun başlangıcı
-            GenerateLevel();
+            GenerateLevel(); // Artık buraya güvenle ulaşabiliyoruz!
         }
     }
 
