@@ -411,25 +411,34 @@ public class GameManager : MonoBehaviour
 
     public void GenerateLevel(bool shouldStartGame = true)
     {
+        // 1. ÖNCE ETKİN INDEX'İ HESAPLA (Döngüsel Index)
+        int effectiveIndex = _currentLevelIndex % levels.Count;
+        currentLevel = levels[effectiveIndex]; // Veriyi her ihtimale karşı buradan tekrar al
+    
         _wrongMatchCount = 0; // Yeni seviye, temiz sayfa!
+        timerText.gameObject.SetActive(true);
+        topBar.SetActive(true);
         _moveCount = 0;       // Varsa hamle sayısını da sıfırla
         _matchedPairs = 0;
+        _comboCount = 0;
         
-        _comboCount = 0; 
         if (currentLevel == null) return;
     
         // 1. Tema Geçiş Yazısı (Sadece geçiş seviyelerinde)
-        if (_currentLevelIndex % 10 == 0)
+        if (effectiveIndex % 10 == 0)
         {
             string themeKey = "";
-            if (_currentLevelIndex == 0) themeKey = "theme_fruit";
-            else if (_currentLevelIndex == 10) themeKey = "theme_animal";
-            else if (_currentLevelIndex == 20) themeKey = "theme_emoji";
-            else if (_currentLevelIndex == 30) themeKey = "theme_letter";
-            else if (_currentLevelIndex == 40) themeKey = "theme_food";
+            if (effectiveIndex == 0) themeKey = "theme_fruit";
+            else if (effectiveIndex == 10) themeKey = "theme_animal";
+            else if (effectiveIndex == 20) themeKey = "theme_emoji";
+            else if (effectiveIndex == 30) themeKey = "theme_letter";
+            else if (effectiveIndex == 40) themeKey = "theme_food";
     
             if(themeKey != "") StartCoroutine(ShowLevelWarning(LanguageManager.GetText(themeKey)));
         }
+
+        // İKON LİSTESİ
+        List<Sprite> activeIcons = GetIconsForCurrentLevel(effectiveIndex);
     
         // Grid ayarları
         GridLayoutGroup gridLayout = cardGridParent.GetComponent<GridLayoutGroup>();
@@ -466,8 +475,8 @@ public class GameManager : MonoBehaviour
         totalPairs = totalCards / 2;
 
         // 2.A. Özel Kart Atamaları
-        _bonusPairID = (_currentLevelIndex >= 20) ? 0 : -1; // Seviye 20+ ise ilk çift bonustur
-        _bombPairID = (_currentLevelIndex >= 40) ? 1 : -2;  // Seviye 40+ ise ikinci çift bombadır
+        _bonusPairID = (effectiveIndex >= 20) ? 0 : -1; // Seviye 20+ ise ilk çift bonustur
+        _bombPairID = (effectiveIndex >= 40) ? 1 : -2;  // Seviye 40+ ise ikinci çift bombadır
         
         // ID Listesi oluşturma ve karıştırma
         List<int> idList = new List<int>();
@@ -516,12 +525,12 @@ public class GameManager : MonoBehaviour
     }
     
     // Yardımcı Fonksiyon: Seviyeye göre ikon listesi döndürür
-    List<Sprite> GetIconsForCurrentLevel()
+    private List<Sprite> GetIconsForCurrentLevel(int index)
     {
-        if (_currentLevelIndex < 10) return fruitIcons;
-        if (_currentLevelIndex < 20) return animalIcons;
-        if (_currentLevelIndex < 30) return emojiIcons;
-        if (_currentLevelIndex < 40) return letterIcons; // Alfabe/Sayı listesi
+        if (index < 10) return fruitIcons;
+        if (index < 20) return animalIcons;
+        if (index < 30) return emojiIcons;
+        if (index < 40) return letterIcons; // Alfabe/Sayı listesi
         return emojiIcons; // 40 ve sonrası için
     }
 
