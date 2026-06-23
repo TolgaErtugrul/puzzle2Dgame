@@ -16,13 +16,24 @@ public class LevelMenuManager : MonoBehaviour
 
     void Start()
     {
-        // Eğer oyuncu daha önce oynamışsa StartPanel'i direkt kapat
-        if (PlayerPrefs.GetInt("TutorialCompleted", 0) == 1)
+        // 1. Önce her şeyi başlangıç durumuna getir (Güvenlik önlemi)
+        if(startPanel != null) startPanel.SetActive(true);
+        if(levelScrollView != null) levelScrollView.SetActive(false);
+    
+        // 2. Şimdi kayıtlı veriye göre karar ver
+        int tutorialDone = PlayerPrefs.GetInt("TutorialCompleted", 0);
+    
+        if (tutorialDone == 1)
         {
-            if (startPanel != null) 
-            {
-                startPanel.SetActive(false);
-            }
+            // Eski oyuncu: Giriş panelini atla, direkt listeyi göster
+            if (startPanel != null) startPanel.SetActive(false);
+            if (levelScrollView != null) levelScrollView.SetActive(true);
+        }
+        else
+        {
+            // Yeni oyuncu: Sadece Giriş Paneli aktif kalsın
+            if (startPanel != null) startPanel.SetActive(true);
+            if (levelScrollView != null) levelScrollView.SetActive(false);
         }
     }
 
