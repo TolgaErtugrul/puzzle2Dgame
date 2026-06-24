@@ -113,6 +113,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        Time.timeScale = 1f;
         // 1. Seçili seviye indexini al
         _currentLevelIndex = PlayerPrefs.GetInt("SelectedLevelIndex", 0);
 
@@ -500,6 +501,13 @@ public class GameManager : MonoBehaviour
         // 2. Kartları oluştururken seçtiğimiz 'activeIcons' listesini kullanıyoruz
         for (int i = 0; i < totalCards; i++)
         {
+            // Listelerin boş olup olmadığını kontrol et
+            if (idList.Count <= i || activeIcons.Count == 0) 
+            {
+                Debug.LogError("Kart oluşturma hatası: ID listesi veya İkon listesi yetersiz!");
+                break; 
+            }
+    
             GameObject newCard = Instantiate(cardPrefab, cardGridParent);
             Card cardScript = newCard.GetComponent<Card>();
             
@@ -1198,5 +1206,12 @@ public class GameManager : MonoBehaviour
         _secondSelected = null;
     
         Debug.Log("Oyun durumu başarıyla sıfırlandı.");
+    }
+
+    public void OnClick_HomeButton()
+    {
+        Time.timeScale = 1f; // Zamanı aç
+        _isProcessing = false; // Kilidi kaldır
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MenuScene");
     }
 }
