@@ -120,7 +120,11 @@ public class GameManager : MonoBehaviour
         // 2. Modulo (%) kullanarak hangi verinin yükleneceğini hesapla
         // levels.Count 51 ise ve index 51 ise; 51 % 51 = 0 olur (Başa döner)
         int levelToLoadIndex = _currentLevelIndex % levels.Count;
+        currentLevel = levels[levelToLoadIndex];
 
+        // ÖNEMLİ: Kartları her zaman oluştur!
+        GenerateLevel();
+    
         // 3. Veriyi çek (Güvenli şekilde)
         if (levels != null && levels.Count > 0)
         {
@@ -148,10 +152,6 @@ public class GameManager : MonoBehaviour
             string lastPanel = PlayerPrefs.GetString("LastOpenedPanel");
             PlayerPrefs.DeleteKey("LastOpenedPanel");
             RestorePreviousState(lastPanel);
-        }
-        else
-        {
-            GenerateLevel(); // Artık buraya güvenle ulaşabiliyoruz!
         }
     }
 
@@ -955,11 +955,12 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    public void GoToMainMenu(string sourcePanel)
+    public void GoToMainMenu()
     {
-        // Hangi panelden geldiğimizi kaydediyoruz
-        // "Win" veya "GameOver" değerlerini alacak
-        PlayerPrefs.SetString("LastOpenedPanel", sourcePanel);
+        Time.timeScale = 1f;
+        
+        // Hafızadaki paneli siliyoruz ki bir sonraki girişte kilitlenmesin
+        PlayerPrefs.DeleteKey("LastOpenedPanel");
         PlayerPrefs.Save();
         
         SceneManager.LoadScene("MenuScene");
