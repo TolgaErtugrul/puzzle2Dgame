@@ -114,39 +114,32 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         Time.timeScale = 1f;
-        // 1. Seçili seviye indexini al
+        // 1. Index ve Seviye Verisi Hesaplama (Senin modulo mantığın)
         _currentLevelIndex = PlayerPrefs.GetInt("SelectedLevelIndex", 0);
-
-        // 2. Modulo (%) kullanarak hangi verinin yükleneceğini hesapla
-        // levels.Count 51 ise ve index 51 ise; 51 % 51 = 0 olur (Başa döner)
-        int levelToLoadIndex = _currentLevelIndex % levels.Count;
-        currentLevel = levels[levelToLoadIndex];
-
-        // ÖNEMLİ: Kartları her zaman oluştur!
-        GenerateLevel();
+        int levelToLoadIndex;
+        if (_currentLevelIndex < levels.Count) 
+            levelToLoadIndex = _currentLevelIndex;
+        else 
+        {
+            int startLoopIndex = 10;
+            levelToLoadIndex = startLoopIndex + ((_currentLevelIndex - levels.Count) % (levels.Count - startLoopIndex));
+        }
     
-        // 3. Veriyi çek (Güvenli şekilde)
         if (levels != null && levels.Count > 0)
-        {
             currentLevel = levels[levelToLoadIndex];
-        }
-        else
-        {
-            Debug.LogError("Levels listesi boş! Lütfen Inspector'dan seviyeleri atayın.");
-            return;
-        }
-
-        // 4. UI Başlığını Güncelle (Örn: "Level 52")
-        if (levelTitleText != null)
-        {
-            levelTitleText.text = LanguageManager.GetText("level_label") + " " + (_currentLevelIndex + 1);
-        }
     
-        // Ayarlar
+        // 2. KRİTİK DEĞİŞİKLİK: Kartları HER ZAMAN oluştur!
+        // GenerateLevel'ı if-else dışına çıkardık.
+        GenerateLevel(); 
+    
+        // 3. UI ve Ayarlar
+        if (levelText != null)
+            levelText.text = LanguageManager.GetText("level_label") + " " + (_currentLevelIndex + 1);
+    
         _isVibrationEnabled = PlayerPrefs.GetInt("Vibration", 1) == 1;
         if(vibrationToggle != null) vibrationToggle.isOn = _isVibrationEnabled;
     
-        // 5. Panel geri yükleme veya normal başlangıç
+        // 4. Panel Geri Yükleme (Eğer varsa kartların üzerine paneli açar)
         if (PlayerPrefs.HasKey("LastOpenedPanel"))
         {
             string lastPanel = PlayerPrefs.GetString("LastOpenedPanel");
@@ -962,7 +955,8 @@ public class GameManager : MonoBehaviour
         // Hafızadaki paneli siliyoruz ki bir sonraki girişte kilitlenmesin
         PlayerPrefs.DeleteKey("LastOpenedPanel");
         PlayerPrefs.Save();
-        
+
+        Time.timeScale = 1f;
         SceneManager.LoadScene("MenuScene");
     }
 
