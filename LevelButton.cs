@@ -38,7 +38,14 @@ public class LevelButton : MonoBehaviour
 
     public void OnClick()
     {
-        // GameManager'a hangi seviyenin seçildiğini haber ver
-        LevelMenuManager.Instance.StartSelectedLevel(levelIndex);
+        Debug.Log("Butona basıldı, index: " + levelIndex);
+        if(LevelMenuManager.Instance != null)
+        {
+            LevelMenuManager.Instance.StartSelectedLevel(levelIndex);
+        }
+        else
+        {
+            Debug.LogError("LevelMenuManager bulunamadı!");
+        }
     }
 }
