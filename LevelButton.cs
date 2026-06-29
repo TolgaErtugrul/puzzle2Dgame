@@ -10,6 +10,13 @@ public class LevelButton : MonoBehaviour
     public GameObject lockIcon;
     public Button mainButton;
 
+    void Start()
+    {
+        // Kod butona tıklandığında ne yapacağını kendi anlar
+        mainButton.onClick.RemoveAllListeners();
+        mainButton.onClick.AddListener(OnClick);
+    }
+    
     // Menü yöneticisi bu butonu oluşturduğunda bu fonksiyonu çağıracak
     public void Setup(int index, int starCount, bool isUnlocked)
     {
