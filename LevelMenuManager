@@ -9,6 +9,7 @@ public class LevelMenuManager : MonoBehaviour
     public GameObject levelButtonPrefab;
     public Transform contentParent; // Scroll View içindeki Content objesi
     public List<LevelData> allLevels; // GameManager'daki listenin aynısını buraya da sürükle
+    public static LevelMenuManager Instance;
 
     public GameObject startPanel;
 
@@ -37,6 +38,16 @@ public class LevelMenuManager : MonoBehaviour
         }
     }
 
+    void Awake()
+    {
+        // Eğer sahnede başka bir manager varsa onu yok et, bu güncel olanı tut
+        if (Instance != null && Instance != this)
+        {
+            Destroy(Instance.gameObject);
+        }
+        Instance = this;
+    }
+
     void CreateMenu()
     {
         int unlocked = PlayerPrefs.GetInt("UnlockedLevel", 1);
@@ -62,6 +73,10 @@ public class LevelMenuManager : MonoBehaviour
 
         // Seçilen seviyeyi static bir değişkende tutarak sahne değişince GameManager'ın okumasını sağlayacağız
         PlayerPrefs.SetInt("SelectedLevelIndex", index);
+        PlayerPrefs.Save();
+
+        // Sahne yüklenmeden hemen önce zamanı bir kez daha zorla açalım
+        Time.timeScale = 1f;
         SceneManager.LoadScene("GameScene"); // Oyunun olduğu sahnenin adı
     }
 
