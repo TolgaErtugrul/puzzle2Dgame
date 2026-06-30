@@ -951,6 +951,7 @@ public class GameManager : MonoBehaviour
     public void GoToMainMenu()
     {
         Time.timeScale = 1f;
+        _isProcessing = false; // Statik veya global bir kilit varsa sıfırla
         
         // Hafızadaki paneli siliyoruz ki bir sonraki girişte kilitlenmesin
         PlayerPrefs.DeleteKey("LastOpenedPanel");
